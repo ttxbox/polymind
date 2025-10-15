@@ -5,6 +5,7 @@ import { ShowResponse } from 'ollama'
 import { ShortcutKeySetting } from '@/presenter/configPresenter/shortcutKeySettings'
 import { ModelType } from '@shared/model'
 import { ProviderChange, ProviderBatchUpdate } from './provider-operations'
+import { A2AServerConfig } from '@/presenter/A2APresenter/serverManager'
 
 export type SQLITE_MESSAGE = {
   id: string
@@ -690,6 +691,23 @@ export interface ILlmProviderPresenter {
     temperature?: number,
     maxTokens?: number
   ): Promise<string>
+}
+
+export interface IA2APresenter {
+  // Server management
+  getA2AServers(): Promise<Record<string, A2AServerConfig>>
+  addA2AServer(name: string, config: A2AServerConfig): Promise<boolean>
+  removeA2AServer(name: string): Promise<void>
+
+  // Server lifecycle
+  isServerRunning(name: string): Promise<boolean>
+
+  // Task operations
+  // sendMessage(serverName: string, params: MessageSendParams): Promise<Task>
+  cancelTask(serverName: string, params: TaskIdParams): Promise<void>
+
+  // Agent information
+  getAgentCard(serverName: string): Promise<AgentCard>
 }
 
 export type CONVERSATION_SETTINGS = {
