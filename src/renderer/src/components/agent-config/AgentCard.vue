@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+  <div
+    class="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+    @click="showDetails(agent)"
+  >
     <!-- 头部：图标和标题 -->
     <div class="flex items-start justify-between mb-3">
       <div class="flex items-center gap-3">
@@ -13,12 +16,26 @@
       </div>
       
       <!-- 安装状态标签 -->
-      <Badge
-        :variant="agent.installed ? 'default' : 'outline'"
-        class="text-xs"
-      >
-        {{ agent.installed ? t('agents.agentCard.installed') : t('agents.agentCard.notInstalled') }}
-      </Badge>
+      <span class="text-xs flex items-center">
+        by
+        <a
+          v-if="agent.provider?.url"
+          :href="agent.provider.url"
+          target="_blank"
+          class="text-primary hover:underline cursor-pointer max-w-[120px] truncate ml-1"
+          @click.stop
+          :title="agent.provider?.organization || 'Unknown'"
+        >
+          {{ agent.provider?.organization || 'Unknown' }}
+        </a>
+        <span
+          v-else
+          class="max-w-[120px] truncate ml-1"
+          :title="agent.provider?.organization || 'Unknown'"
+        >
+          {{ agent.provider?.organization || 'Unknown' }}
+        </span>
+      </span>
     </div>
 
     <!-- 描述 -->
@@ -29,12 +46,12 @@
     <!-- 特性标签 -->
     <div class="flex flex-wrap gap-1 mb-3">
       <Badge
-        v-for="feature in agent.skills.slice(0, 3)"
-        :key="feature"
+        v-for="skill in agent.skills.slice(0, 3)"
+        :key="skill.id"
         variant="secondary"
         class="text-xs"
       >
-        {{ feature }}
+        {{ skill.name }}
       </Badge>
       <Badge
         v-if="agent.skills.length > 3"
@@ -43,21 +60,6 @@
       >
         +{{ agent.skills.length - 3 }}
       </Badge>
-    </div>
-
-    <!-- 统计信息 -->
-    <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-1">
-          <Icon icon="lucide:star" class="w-3 h-3" />
-          <span>{{ agent.rating }}</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <Icon icon="lucide:download" class="w-3 h-3" />
-          <span>{{ formatDownloads(agent.downloads) }}</span>
-        </div>
-      </div>
-      <span class="text-xs">by {{ agent.author }}</span>
     </div>
 
     <!-- 操作按钮 -->
@@ -81,14 +83,6 @@
         <Icon icon="lucide:settings" class="w-4 h-4 mr-1" />
         {{ t('agents.agentCard.configure') }}
       </Button>
-      
-      <Button
-        size="sm"
-        variant="ghost"
-        @click="showDetails(agent)"
-      >
-        <Icon icon="lucide:info" class="w-4 h-4" />
-      </Button>
     </div>
   </div>
 </template>
@@ -103,21 +97,7 @@ import { useI18n } from 'vue-i18n'
 const { toast } = useToast()
 const { t } = useI18n()
 
-// 定义Props
-interface Agent {
-  id: string
-  name: string
-  description: string
-  icon: string
-  category: string
-  installed: boolean
-  version: string
-  author: string
-  rating: number
-  downloads: number
-  skills: string[]
-  config?: Record<string, any>
-}
+import { Agent } from '@shared/presenter'
 
 interface Props {
   agent: Agent
@@ -130,14 +110,6 @@ defineEmits<{
   install: [agent: Agent]
   configure: [agent: Agent]
 }>()
-
-// 格式化下载量显示
-const formatDownloads = (downloads: number): string => {
-  if (downloads >= 1000) {
-    return `${(downloads / 1000).toFixed(1)}k`
-  }
-  return downloads.toString()
-}
 
 // 显示详细信息
 const showDetails = (agent: Agent) => {

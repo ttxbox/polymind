@@ -117,11 +117,14 @@ const filteredAgents = computed(() => {
   // 按搜索查询筛选
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(agent => 
+    filtered = filtered.filter(agent =>
       agent.name.toLowerCase().includes(query) ||
       agent.description.toLowerCase().includes(query) ||
-      agent.skills.some(skill => skill.toLowerCase().includes(query)) ||
-      agent.author.toLowerCase().includes(query)
+      (agent.skills && agent.skills.some((skill) =>
+            skill.name.toLowerCase().includes(query) ||
+            skill.description.toLowerCase().includes(query)
+          )) ||
+      agent.provider?.organization?.toLowerCase().includes(query)
     )
   }
 
@@ -195,13 +198,13 @@ const toggleCategory = (categoryId: string) => {
 // 监听智能体更新事件
 const setupEventListeners = () => {
   // 监听智能体列表更新
-  window.electron?.ipcRenderer?.on('agent:agents-updated', (event, data) => {
+  window.electron?.ipcRenderer?.on('agent:agents-updated', (_event, data) => {
     console.log('Agents updated:', data)
     agents.value = data.agents
   })
 
   // 监听智能体安装事件
-  window.electron?.ipcRenderer?.on('agent:agent-installed', (event, data) => {
+  window.electron?.ipcRenderer?.on('agent:agent-installed', (_event, data) => {
     console.log('Agent installed:', data)
     const agentIndex = agents.value.findIndex(a => a.id === data.agentId)
     if (agentIndex !== -1) {
@@ -210,7 +213,7 @@ const setupEventListeners = () => {
   })
 
   // 监听智能体卸载事件
-  window.electron?.ipcRenderer?.on('agent:agent-uninstalled', (event, data) => {
+  window.electron?.ipcRenderer?.on('agent:agent-uninstalled', (_event, data) => {
     console.log('Agent uninstalled:', data)
     const agentIndex = agents.value.findIndex(a => a.id === data.agentId)
     if (agentIndex !== -1) {

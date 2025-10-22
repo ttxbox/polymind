@@ -17,7 +17,7 @@ export class AgentConfHelper {
 
   constructor() {
     this.store = new ElectronStore<IAgentStore>({
-      name: 'agents',
+      name: 'agent-settings',
       defaults: {
         agents: [],
         installedAgents: [],
@@ -289,8 +289,13 @@ export class AgentConfHelper {
         (agent) =>
           agent.name.toLowerCase().includes(searchTerm) ||
           agent.description.toLowerCase().includes(searchTerm) ||
-          agent.skills.some((feature) => feature.toLowerCase().includes(searchTerm)) ||
-          agent.author.toLowerCase().includes(searchTerm)
+          (agent.skills &&
+            agent.skills.some(
+              (skill) =>
+                skill.name.toLowerCase().includes(searchTerm) ||
+                skill.description.toLowerCase().includes(searchTerm)
+            )) ||
+          agent.provider?.organization?.toLowerCase().includes(searchTerm)
       )
     } catch (error) {
       console.error('Failed to search agents:', error)
