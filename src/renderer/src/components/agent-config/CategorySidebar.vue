@@ -38,9 +38,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { Badge } from '@/components/ui/badge'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 interface Category {
   id: string

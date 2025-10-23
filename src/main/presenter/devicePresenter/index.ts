@@ -370,7 +370,8 @@ export class DevicePresenter implements IDevicePresenter {
             path.join(userDataPath, 'app-settings.json'),
             path.join(userDataPath, 'mcp-settings.json'),
             path.join(userDataPath, 'model-config.json'),
-            path.join(userDataPath, 'custom_prompts.json')
+            path.join(userDataPath, 'custom_prompts.json'),
+            path.join(userDataPath, 'agent-settings.json')
           ]
 
           configFiles.forEach((filePath) => {

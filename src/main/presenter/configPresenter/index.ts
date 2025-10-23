@@ -9,7 +9,8 @@ import {
   Prompt,
   SystemPrompt,
   IModelConfig,
-  BuiltinKnowledgeConfig
+  BuiltinKnowledgeConfig,
+  Agent
 } from '@shared/presenter'
 import {
   ProviderChange,
@@ -30,6 +31,7 @@ import { compare } from 'compare-versions'
 import { defaultShortcutKey, ShortcutKeySetting } from './shortcutKeySettings'
 import { ModelConfigHelper } from './modelConfig'
 import { KnowledgeConfHelper } from './knowledgeConfHelper'
+import { AgentConfHelper } from './agentConfHelper'
 import { SYSTEM_PROMPT } from '../promptPresenter/system'
 
 // Default system prompt constant
@@ -98,6 +100,7 @@ export class ConfigPresenter implements IConfigPresenter {
   private mcpConfHelper: McpConfHelper // Use MCP configuration helper
   private modelConfigHelper: ModelConfigHelper // Model configuration helper
   private knowledgeConfHelper: KnowledgeConfHelper // Knowledge configuration helper
+  private agentConfHelper: AgentConfHelper // Agent configuration helper
   // Model status memory cache for high-frequency read/write operations
   private modelStatusCache: Map<string, boolean> = new Map()
 
@@ -165,6 +168,9 @@ export class ConfigPresenter implements IConfigPresenter {
 
     // Initialize knowledge configuration helper
     this.knowledgeConfHelper = new KnowledgeConfHelper()
+
+    // Initialize agent configuration helper
+    this.agentConfHelper = new AgentConfHelper()
 
     // Initialize provider models directory
     this.initProviderModelsDir()
@@ -1432,6 +1438,137 @@ export class ConfigPresenter implements IConfigPresenter {
   // 根据包名查找服务器
   async findMcpServerByPackage(packageName: string): Promise<string | null> {
     return this.mcpConfHelper.findServerByPackage(packageName)
+  }
+
+  // ===================== 智能体配置相关方法 =====================
+
+  /**
+   * 获取所有智能体
+   */
+  async getAgents(): Promise<Agent[]> {
+    return this.agentConfHelper.getAgents()
+  }
+
+  /**
+   * 设置智能体列表
+   */
+  async setAgents(agents: Agent[]): Promise<void> {
+    return this.agentConfHelper.setAgents(agents)
+  }
+
+  /**
+   * 添加智能体
+   */
+  async addAgent(agent: Agent): Promise<void> {
+    return this.agentConfHelper.addAgent(agent)
+  }
+
+  /**
+   * 更新智能体
+   */
+  async updateAgent(agentId: string, updates: Partial<Agent>): Promise<void> {
+    return this.agentConfHelper.updateAgent(agentId, updates)
+  }
+
+  /**
+   * 删除智能体
+   */
+  async removeAgent(agentId: string): Promise<void> {
+    return this.agentConfHelper.removeAgent(agentId)
+  }
+
+  /**
+   * 安装智能体
+   */
+  async installAgent(agentId: string): Promise<boolean> {
+    await this.agentConfHelper.installAgent(agentId)
+    return true
+  }
+
+  /**
+   * 卸载智能体
+   */
+  async uninstallAgent(agentId: string): Promise<boolean> {
+    await this.agentConfHelper.uninstallAgent(agentId)
+    return true
+  }
+
+  /**
+   * 获取已安装的智能体
+   */
+  async getInstalledAgents(): Promise<Agent[]> {
+    return this.agentConfHelper.getInstalledAgents()
+  }
+
+  /**
+   * 检查智能体是否已安装
+   */
+  async isAgentInstalled(agentId: string): Promise<boolean> {
+    return this.agentConfHelper.isAgentInstalled(agentId)
+  }
+
+  /**
+   * 获取智能体安装状态
+   */
+  async getAgentInstallStatus(agentId: string): Promise<boolean> {
+    return this.agentConfHelper.isAgentInstalled(agentId)
+  }
+
+  /**
+   * 根据分类获取智能体
+   */
+  async getAgentsByCategory(category: string): Promise<Agent[]> {
+    return this.agentConfHelper.getAgentsByCategory(category)
+  }
+
+  /**
+   * 搜索智能体
+   */
+  async searchAgents(query: string): Promise<Agent[]> {
+    return this.agentConfHelper.searchAgents(query)
+  }
+
+  /**
+   * 获取智能体统计信息
+   */
+  async getAgentStats(): Promise<{
+    total: number
+    installed: number
+    byCategory: Record<string, number>
+  }> {
+    return this.agentConfHelper.getAgentStats()
+  }
+
+  /**
+   * 导入智能体数据
+   */
+  async importAgents(data: { agents: Agent[]; installedAgents?: string[] }): Promise<void> {
+    return this.agentConfHelper.importAgents(data)
+  }
+
+  /**
+   * 导出智能体数据
+   */
+  async exportAgents(): Promise<{
+    agents: Agent[]
+    installedAgents: string[]
+    lastUpdateTime: number
+  }> {
+    return this.agentConfHelper.exportAgents()
+  }
+
+  /**
+   * 获取最后更新时间
+   */
+  getAgentsLastUpdateTime(): number {
+    return this.agentConfHelper.getLastUpdateTime()
+  }
+
+  /**
+   * 获取智能体配置助手
+   */
+  getAgentConfHelper(): AgentConfHelper {
+    return this.agentConfHelper
   }
 }
 

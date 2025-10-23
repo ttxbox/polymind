@@ -26,6 +26,7 @@ export class SyncPresenter implements ISyncPresenter {
   private readonly PROVIDER_MODELS_DIR_PATH = path.join(app.getPath('userData'), 'provider_models')
   private readonly DB_PATH = path.join(app.getPath('userData'), 'app_db', 'chat.db')
   private readonly MODEL_CONFIG_PATH = path.join(app.getPath('userData'), 'model-config.json')
+  private readonly AGENT_SETTINGS_PATH = path.join(app.getPath('userData'), 'agent-settings.json')
 
   constructor(configPresenter: IConfigPresenter, sqlitePresenter: ISQLitePresenter) {
     this.configPresenter = configPresenter
@@ -151,6 +152,10 @@ export class SyncPresenter implements ISyncPresenter {
       const tempProviderModelsPath = path.join(app.getPath('temp'), `provider_models_${Date.now()}`)
       const tempMcpSettingsPath = path.join(app.getPath('temp'), `mcp_settings_${Date.now()}.json`)
       const tempModelConfigPath = path.join(app.getPath('temp'), `model_config_${Date.now()}.json`)
+      const tempAgentSettingsPath = path.join(
+        app.getPath('temp'),
+        `mcp_settings_${Date.now()}.json`
+      )
       // 创建临时备份
       if (fs.existsSync(this.DB_PATH)) {
         fs.copyFileSync(this.DB_PATH, tempDbPath)
@@ -162,6 +167,10 @@ export class SyncPresenter implements ISyncPresenter {
 
       if (fs.existsSync(this.MCP_SETTINGS_PATH)) {
         fs.copyFileSync(this.MCP_SETTINGS_PATH, tempMcpSettingsPath)
+      }
+
+      if (fs.existsSync(this.AGENT_SETTINGS_PATH)) {
+        fs.copyFileSync(this.AGENT_SETTINGS_PATH, tempAgentSettingsPath)
       }
 
       // 备份模型配置文件
@@ -244,6 +253,10 @@ export class SyncPresenter implements ISyncPresenter {
 
         if (fs.existsSync(tempMcpSettingsPath)) {
           fs.copyFileSync(tempMcpSettingsPath, this.MCP_SETTINGS_PATH)
+        }
+
+        if (fs.existsSync(tempAgentSettingsPath)) {
+          fs.copyFileSync(tempAgentSettingsPath, this.AGENT_SETTINGS_PATH)
         }
 
         if (fs.existsSync(tempProviderModelsPath)) {
@@ -332,12 +345,17 @@ export class SyncPresenter implements ISyncPresenter {
         syncFolderPath,
         `model_config_${Date.now()}.json.tmp`
       )
+      const tempAgentSettingsBackupPath = path.join(
+        syncFolderPath,
+        `agent_settings_${Date.now()}.json.tmp`
+      )
 
       const finalDbBackupPath = path.join(syncFolderPath, 'chat.db')
       const finalAppSettingsBackupPath = path.join(syncFolderPath, 'app-settings.json')
       const finalProviderModelsBackupPath = path.join(syncFolderPath, 'provider_models')
       const finalMcpSettingsBackupPath = path.join(syncFolderPath, 'mcp-settings.json')
       const finalModelConfigBackupPath = path.join(syncFolderPath, 'model-config.json')
+      const finalAgentSettingsBackupPath = path.join(syncFolderPath, 'agent-settings.json')
 
       // 确保数据库文件存在
       if (!fs.existsSync(this.DB_PATH)) {
@@ -376,6 +394,11 @@ export class SyncPresenter implements ISyncPresenter {
       // 备份 MCP 设置
       if (fs.existsSync(this.MCP_SETTINGS_PATH)) {
         fs.copyFileSync(this.MCP_SETTINGS_PATH, tempMcpSettingsBackupPath)
+      }
+
+      // 备份 AGENT 设置
+      if (fs.existsSync(this.AGENT_SETTINGS_PATH)) {
+        fs.copyFileSync(this.AGENT_SETTINGS_PATH, tempAgentSettingsBackupPath)
       }
 
       // 备份模型配置文件
@@ -422,6 +445,10 @@ export class SyncPresenter implements ISyncPresenter {
         fs.unlinkSync(finalMcpSettingsBackupPath)
       }
 
+      if (fs.existsSync(finalAgentSettingsBackupPath)) {
+        fs.unlinkSync(finalAgentSettingsBackupPath)
+      }
+
       // 清理之前的模型配置文件备份
       if (fs.existsSync(finalModelConfigBackupPath)) {
         fs.unlinkSync(finalModelConfigBackupPath)
@@ -431,6 +458,7 @@ export class SyncPresenter implements ISyncPresenter {
       fs.renameSync(tempDbBackupPath, finalDbBackupPath)
       fs.renameSync(tempAppSettingsBackupPath, finalAppSettingsBackupPath)
       fs.renameSync(tempMcpSettingsBackupPath, finalMcpSettingsBackupPath)
+      fs.renameSync(tempAgentSettingsBackupPath, finalAgentSettingsBackupPath)
 
       // 重命名模型配置文件
       if (fs.existsSync(tempModelConfigBackupPath)) {
