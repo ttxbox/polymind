@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "エージェントマーケット",
+    "subtitle": "様々な専門エージェントを発見してインストール"
+  },
+  "categories": {
+    "title": "カテゴリフィルター",
+    "all": "すべて",
+    "development": "開発",
+    "productivity": "生産性",
+    "analytics": "分析",
+    "research": "研究",
+    "design": "デザイン",
+    "support": "サポート"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "基本情報",
+      "version": "バージョン",
+      "provider": "プロバイダー",
+      "skills": "スキル",
+      "mcpServers": "MCP サーバー"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "インストール成功",
+      "description": "{name} が正常にインストールされました"
+    },
+    "configure": {
+      "title": "設定",
+      "description": "{name} の設定インターフェースを開いています"
+    },
+    "uninstallSuccess": {
+      "title": "アンインストール成功",
+      "description": "{name} が正常にアンインストールされました"
+    },
+    "installError": {
+      "title": "インストール失敗",
+      "description": "{name} のインストールに失敗しました"
+    },
+    "uninstallError": {
+      "title": "アンインストール失敗",
+      "description": "{name} のアンインストールに失敗しました"
+    }
+  },
+  "search": {
+    "placeholder": "エージェントを検索..."
+  },
+  "results": "件の結果",
+  "empty": {
+    "title": "エージェントが見つかりません",
+    "description": "検索条件またはカテゴリフィルターを変更してみてください"
+  }
+}

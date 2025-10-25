@@ -15,27 +15,30 @@
         </div>
       </div>
       
-      <!-- 安装状态标签 -->
-      <span class="text-xs flex items-center">
-        by
-        <a
-          v-if="agent.provider?.url"
-          :href="agent.provider.url"
-          target="_blank"
-          class="text-primary hover:underline cursor-pointer max-w-[120px] truncate ml-1"
-          @click.stop
-          :title="agent.provider?.organization || 'Unknown'"
-        >
-          {{ agent.provider?.organization || 'Unknown' }}
-        </a>
-        <span
-          v-else
-          class="max-w-[120px] truncate ml-1"
-          :title="agent.provider?.organization || 'Unknown'"
-        >
-          {{ agent.provider?.organization || 'Unknown' }}
+      <div class="flex items-center gap-2">
+        
+        <!-- 提供商信息 -->
+        <span class="text-xs flex items-center">
+          by
+          <a
+            v-if="agent.provider?.url"
+            :href="agent.provider.url"
+            target="_blank"
+            class="text-primary hover:underline cursor-pointer max-w-[120px] truncate ml-1"
+            @click.stop
+            :title="agent.provider.url"
+          >
+            {{ agent.provider?.organization || 'Unknown' }}
+          </a>
+          <span
+            v-else
+            class="max-w-[120px] truncate ml-1"
+            :title="agent.provider?.organization || 'Unknown'"
+          >
+            {{ agent.provider?.organization || 'Unknown' }}
+          </span>
         </span>
-      </span>
+      </div>
     </div>
 
     <!-- 描述 -->
@@ -43,58 +46,56 @@
       {{ agent.description }}
     </p>
 
-    <!-- 特性标签 -->
-    <div class="flex flex-wrap gap-1 mb-3">
-      <Badge
-        v-for="skill in agent.skills.slice(0, 3)"
-        :key="skill.id"
-        variant="secondary"
-        class="text-xs"
-      >
-        {{ skill.name }}
-      </Badge>
-      <Badge
-        v-if="agent.skills.length > 3"
-        variant="outline"
-        class="text-xs"
-      >
-        +{{ agent.skills.length - 3 }}
-      </Badge>
+    <!-- 特性标签和开关 -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex flex-wrap gap-1 flex-1">
+        <Badge
+          v-for="skill in agent.skills.slice(0, 3)"
+          :key="skill.id"
+          variant="secondary"
+          class="text-xs"
+        >
+          {{ skill.name }}
+        </Badge>
+        <Badge
+          v-if="agent.skills.length > 3"
+          variant="outline"
+          class="text-xs"
+        >
+          +{{ agent.skills.length - 3 }}
+        </Badge>
+      </div>
+      
+      <!-- 安装/卸载开关 -->
+      <div class="flex items-center gap-2 ml-4">
+        <Switch
+          :checked="agent.installed"
+          @update:checked="toggleInstallation"
+          @click.stop
+        />
+      </div>
     </div>
 
-    <!-- 操作按钮 -->
-    <div class="flex gap-2">
-      <Button
-        v-if="!agent.installed"
-        size="sm"
-        class="flex-1"
-        @click="$emit('install', agent)"
-      >
-        <Icon icon="lucide:download" class="w-4 h-4 mr-1" />
-        {{ t('agents.agentCard.install') }}
-      </Button>
-      <Button
-        v-else
-        size="sm"
-        variant="outline"
-        class="flex-1"
-        @click="$emit('configure', agent)"
-      >
-        <Icon icon="lucide:settings" class="w-4 h-4 mr-1" />
-        {{ t('agents.agentCard.configure') }}
-      </Button>
-    </div>
+    
+
   </div>
+
+  <!-- Agent 配置详情对话框 -->
+  <AgentSettings
+    v-model:show-agent-settings="showAgentSettings"
+    :selected-agent="selectedAgent"
+  />
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { Switch } from '@/components/ui/switch'
 import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
+import AgentSettings from './AgentSettings.vue'
 
-const { toast } = useToast()
 const { t } = useI18n()
 
 import { Agent } from '@shared/presenter'
@@ -103,24 +104,32 @@ interface Props {
   agent: Agent
 }
 
-defineProps<Props>()
-
-// 定义事件
-defineEmits<{
-  install: [agent: Agent]
+const props = defineProps<Props>()
+const emit = defineEmits<{
   configure: [agent: Agent]
+  install: [agent: Agent]
+  uninstall: [agent: Agent]
 }>()
+
+// 对话框状态
+const showAgentSettings = ref(false)
+const selectedAgent = ref<Agent | null>(null)
+
+// 切换安装状态
+const toggleInstallation = () => {
+  if (props.agent.installed) {
+    // 如果已安装，则卸载
+    emit('uninstall', props.agent)
+  } else {
+    // 如果未安装，则安装
+    emit('install', props.agent)
+  }
+}
 
 // 显示详细信息
 const showDetails = (agent: Agent) => {
-  toast({
-    title: agent.name,
-    description: t('agents.agentCard.viewDetails', { name: agent.name }),
-    variant: 'default'
-  })
-  
-  // 这里可以打开模态框显示更多信息
-  console.log('显示智能体详情:', agent)
+  selectedAgent.value = agent
+  showAgentSettings.value = true
 }
 </script>
 

@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "Рынок Агентов",
+    "subtitle": "Откройте и установите различных профессиональных агентов"
+  },
+  "categories": {
+    "title": "Фильтр по категориям",
+    "all": "Все",
+    "development": "Разработка",
+    "productivity": "Производительность",
+    "analytics": "Аналитика",
+    "research": "Исследования",
+    "design": "Дизайн",
+    "support": "Поддержка"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "Основная информация",
+      "version": "Версия",
+      "provider": "Провайдер",
+      "skills": "Навыки",
+      "mcpServers": "MCP серверы"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "Установка успешна",
+      "description": "{name} успешно установлен"
+    },
+    "configure": {
+      "title": "Настройка",
+      "description": "Открывается интерфейс настройки для {name}"
+    },
+    "uninstallSuccess": {
+      "title": "Удаление успешно",
+      "description": "{name} успешно удален"
+    },
+    "installError": {
+      "title": "Ошибка установки",
+      "description": "Не удалось установить {name}"
+    },
+    "uninstallError": {
+      "title": "Ошибка удаления",
+      "description": "Не удалось удалить {name}"
+    }
+  },
+  "search": {
+    "placeholder": "Поиск агентов..."
+  },
+  "results": "результатов",
+  "empty": {
+    "title": "Агенты не найдены",
+    "description": "Попробуйте изменить критерии поиска или фильтр категорий"
+  }
+}

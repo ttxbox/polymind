@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "Agent Market",
+    "subtitle": "Discover and install various professional agents"
+  },
+  "categories": {
+    "title": "Category Filter",
+    "all": "All",
+    "development": "Development",
+    "productivity": "Productivity",
+    "analytics": "Analytics",
+    "research": "Research",
+    "design": "Design",
+    "support": "Support"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "Basic Information",
+      "version": "Version",
+      "provider": "Provider",
+      "skills": "Skills",
+      "mcpServers": "MCP Servers"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "Installation Successful",
+      "description": "{name} has been successfully installed"
+    },
+    "configure": {
+      "title": "Configuration",
+      "description": "Opening configuration interface for {name}"
+    },
+    "uninstallSuccess": {
+      "title": "Uninstall Successful",
+      "description": "{name} has been successfully uninstalled"
+    },
+    "installError": {
+      "title": "Installation Failed",
+      "description": "Failed to install {name}"
+    },
+    "uninstallError": {
+      "title": "Uninstall Failed",
+      "description": "Failed to uninstall {name}"
+    }
+  },
+  "search": {
+    "placeholder": "Search agents..."
+  },
+  "results": "results",
+  "empty": {
+    "title": "No agents found",
+    "description": "Try changing your search criteria or category filter"
+  }
+}

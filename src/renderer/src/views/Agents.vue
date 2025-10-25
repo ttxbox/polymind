@@ -46,13 +46,14 @@
         </div>
 
         <!-- 智能体网格布局 -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           <AgentCard
             v-for="agent in filteredAgents"
             :key="agent.id"
             :agent="agent"
             @install="handleInstallAgent"
             @configure="handleConfigureAgent"
+            @uninstall="handleUninstallAgent"
           />
         </div>
       </div>
@@ -91,8 +92,8 @@ const loadAgents = async () => {
   }
 }
 
-// 分类数据
-const categories = ref([
+// 分类数据 - 使用计算属性确保语言切换时更新
+const categories = computed(() => [
   { id: 'all', name: t('agents.categories.all') },
   { id: 'development', name: t('agents.categories.development') },
   { id: 'productivity', name: t('agents.categories.productivity') },
@@ -169,14 +170,16 @@ const handleInstallAgent = async (agent: Agent) => {
     toast({
       title: t('agents.toast.installSuccess.title'),
       description: t('agents.toast.installSuccess.description', { name: agent.name }),
-      variant: 'default'
+      variant: 'default',
+      duration: 3000
     })
   } catch (error) {
     console.error('Failed to install agent:', error)
     toast({
       title: t('agents.toast.installError.title'),
       description: t('agents.toast.installError.description', { name: agent.name }),
-      variant: 'destructive'
+      variant: 'destructive',
+      duration: 5000
     })
   }
 }
@@ -187,8 +190,40 @@ const handleConfigureAgent = (agent: Agent) => {
   toast({
     title: t('agents.toast.configure.title'),
     description: t('agents.toast.configure.description', { name: agent.name }),
-    variant: 'default'
+    variant: 'default',
+    duration: 3000
   })
+}
+
+const handleUninstallAgent = async (agent: Agent) => {
+  console.log('卸载智能体:', agent.name)
+  
+  try {
+    // 通过 configPresenter 卸载智能体
+    const configPresenter = usePresenter('configPresenter')
+    await configPresenter.uninstallAgent(agent.id)
+    
+    // 更新本地状态
+    const agentIndex = agents.value.findIndex(a => a.id === agent.id)
+    if (agentIndex !== -1) {
+      agents.value[agentIndex].installed = false
+    }
+    
+    toast({
+      title: t('agents.toast.uninstallSuccess.title'),
+      description: t('agents.toast.uninstallSuccess.description', { name: agent.name }),
+      variant: 'default',
+      duration: 3000
+    })
+  } catch (error) {
+    console.error('Failed to uninstall agent:', error)
+    toast({
+      title: t('agents.toast.uninstallError.title'),
+      description: t('agents.toast.uninstallError.description', { name: agent.name }),
+      variant: 'destructive',
+      duration: 5000
+    })
+  }
 }
 
 const toggleCategory = (categoryId: string) => {
