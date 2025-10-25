@@ -110,8 +110,8 @@ interface Emits {
   (e: 'update:showAgentSettings', value: boolean): void
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+defineProps<Props>()
+defineEmits<Emits>()
 
 const { t } = useI18n()
 const mcpStore = useMcpStore()

@@ -89,14 +89,10 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import AgentSettings from './AgentSettings.vue'
-
-const { t } = useI18n()
 
 import { Agent } from '@shared/presenter'
 
