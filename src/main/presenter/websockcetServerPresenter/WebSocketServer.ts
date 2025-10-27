@@ -293,7 +293,7 @@ export class WebSocketServerManager {
    * 广播消息到所有客户端
    */
   broadcast(message: MessageType): void {
-    this.clients.forEach((client, clientId) => {
+    this.clients.forEach((_, clientId) => {
       this.sendToClient(clientId, message)
     })
   }
