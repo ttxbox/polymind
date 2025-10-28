@@ -7,7 +7,7 @@ import type {
   UserMessage,
   Message
 } from '@shared/chat'
-import type { CONVERSATION, CONVERSATION_SETTINGS } from '@shared/presenter'
+import type { AIScriptResult, CONVERSATION, CONVERSATION_SETTINGS } from '@shared/presenter'
 import { usePresenter } from '@/composables/usePresenter'
 import { CONVERSATION_EVENTS, DEEPLINK_EVENTS, MEETING_EVENTS } from '@/events'
 import router from '@/router'
@@ -309,6 +309,23 @@ export const useChatStore = defineStore('chat', () => {
       return newThreadId
     } catch (error) {
       console.error('Failed to create thread branch:', error)
+      throw error
+    }
+  }
+
+  const generateAiScript = async (
+    messageId: string,
+    options?: { promptOverride?: string }
+  ): Promise<AIScriptResult> => {
+    const conversationId = getActiveThreadId()
+    if (!conversationId) {
+      throw new Error(t('common.error.requestFailed'))
+    }
+
+    try {
+      return await threadP.generateAiScript(conversationId, messageId, options)
+    } catch (error) {
+      console.error('Failed to generate AI Script:', error)
       throw error
     }
   }
@@ -1228,6 +1245,7 @@ export const useChatStore = defineStore('chat', () => {
     deeplinkCache,
     clearDeeplinkCache,
     forkThread,
+    generateAiScript,
     updateThreadWorkingStatus,
     getThreadWorkingStatus,
     threadsWorkingStatusMap,
