@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "에이전트 마켓",
+    "subtitle": "다양한 전문 에이전트를 발견하고 설치하세요"
+  },
+  "categories": {
+    "title": "카테고리 필터",
+    "all": "전체",
+    "development": "개발",
+    "productivity": "생산성",
+    "analytics": "분석",
+    "research": "연구",
+    "design": "디자인",
+    "support": "지원"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "기본 정보",
+      "version": "버전",
+      "provider": "제공자",
+      "skills": "스킬",
+      "mcpServers": "MCP 서버"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "설치 성공",
+      "description": "{name}이(가) 성공적으로 설치되었습니다"
+    },
+    "configure": {
+      "title": "구성",
+      "description": "{name}의 구성 인터페이스를 열고 있습니다"
+    },
+    "uninstallSuccess": {
+      "title": "제거 성공",
+      "description": "{name}이(가) 성공적으로 제거되었습니다"
+    },
+    "installError": {
+      "title": "설치 실패",
+      "description": "{name} 설치에 실패했습니다"
+    },
+    "uninstallError": {
+      "title": "제거 실패",
+      "description": "{name} 제거에 실패했습니다"
+    }
+  },
+  "search": {
+    "placeholder": "에이전트 검색..."
+  },
+  "results": "개 결과",
+  "empty": {
+    "title": "에이전트를 찾을 수 없습니다",
+    "description": "검색 조건이나 카테고리 필터를 변경해 보세요"
+  }
+}

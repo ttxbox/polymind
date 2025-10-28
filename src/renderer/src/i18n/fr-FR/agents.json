@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "Marché des Agents",
+    "subtitle": "Découvrez et installez divers agents professionnels"
+  },
+  "categories": {
+    "title": "Filtre par catégorie",
+    "all": "Tous",
+    "development": "Développement",
+    "productivity": "Productivité",
+    "analytics": "Analyse",
+    "research": "Recherche",
+    "design": "Conception",
+    "support": "Support"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "Informations de base",
+      "version": "Version",
+      "provider": "Fournisseur",
+      "skills": "Compétences",
+      "mcpServers": "Serveurs MCP"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "Installation réussie",
+      "description": "{name} a été installé avec succès"
+    },
+    "configure": {
+      "title": "Configuration",
+      "description": "Ouverture de l'interface de configuration pour {name}"
+    },
+    "uninstallSuccess": {
+      "title": "Désinstallation réussie",
+      "description": "{name} a été désinstallé avec succès"
+    },
+    "installError": {
+      "title": "Échec de l'installation",
+      "description": "Échec de l'installation de {name}"
+    },
+    "uninstallError": {
+      "title": "Échec de la désinstallation",
+      "description": "Échec de la désinstallation de {name}"
+    }
+  },
+  "search": {
+    "placeholder": "Rechercher des agents..."
+  },
+  "results": "résultats",
+  "empty": {
+    "title": "Aucun agent trouvé",
+    "description": "Essayez de modifier vos critères de recherche ou votre filtre de catégorie"
+  }
+}

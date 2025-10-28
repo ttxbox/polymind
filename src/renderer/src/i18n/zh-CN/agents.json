@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "Agent市场",
+    "subtitle": "发现和安装各种专业智能体"
+  },
+  "categories": {
+    "title": "分类筛选",
+    "all": "全部",
+    "development": "开发",
+    "productivity": "生产力",
+    "analytics": "分析",
+    "research": "研究",
+    "design": "设计",
+    "support": "客服"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "基本信息",
+      "version": "版本",
+      "provider": "提供商",
+      "skills": "技能",
+      "mcpServers": "MCP 服务器"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "安装成功",
+      "description": "{name} 已成功安装"
+    },
+    "configure": {
+      "title": "配置",
+      "description": "正在打开 {name} 的配置界面"
+    },
+    "uninstallSuccess": {
+      "title": "卸载成功",
+      "description": "{name} 已成功卸载"
+    },
+    "installError": {
+      "title": "安装失败",
+      "description": "{name} 安装失败"
+    },
+    "uninstallError": {
+      "title": "卸载失败",
+      "description": "{name} 卸载失败"
+    }
+  },
+  "search": {
+    "placeholder": "搜索智能体..."
+  },
+  "results": "个结果",
+  "empty": {
+    "title": "未找到智能体",
+    "description": "尝试更改搜索条件或分类筛选"
+  }
+}

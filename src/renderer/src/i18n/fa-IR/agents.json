@@ -1,0 +1,55 @@
+{
+  "page": {
+    "title": "بازار عامل",
+    "subtitle": "کشف و نصب عوامل حرفه‌ای مختلف"
+  },
+  "categories": {
+    "title": "فیلتر دسته‌بندی",
+    "all": "همه",
+    "development": "توسعه",
+    "productivity": "بهره‌وری",
+    "analytics": "تحلیل",
+    "research": "تحقیق",
+    "design": "طراحی",
+    "support": "پشتیبانی"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "اطلاعات پایه",
+      "version": "نسخه",
+      "provider": "ارائه‌دهنده",
+      "skills": "مهارت‌ها",
+      "mcpServers": "سرورهای MCP"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "نصب موفق",
+      "description": "{name} با موفقیت نصب شد"
+    },
+    "configure": {
+      "title": "پیکربندی",
+      "description": "در حال باز کردن رابط پیکربندی برای {name}"
+    },
+    "uninstallSuccess": {
+      "title": "حذف نصب موفق",
+      "description": "{name} با موفقیت حذف نصب شد"
+    },
+    "installError": {
+      "title": "نصب ناموفق",
+      "description": "نصب {name} ناموفق بود"
+    },
+    "uninstallError": {
+      "title": "حذف نصب ناموفق",
+      "description": "حذف نصب {name} ناموفق بود"
+    }
+  },
+  "search": {
+    "placeholder": "جستجوی عوامل..."
+  },
+  "results": "نتیجه",
+  "empty": {
+    "title": "عامل‌ای یافت نشد",
+    "description": "سعی کنید معیارهای جستجو یا فیلتر دسته‌بندی خود را تغییر دهید"
+  }
+}
