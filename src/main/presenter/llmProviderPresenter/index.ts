@@ -794,6 +794,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
           arguments: string
         }> = []
         const currentToolChunks: Record<string, { name: string; arguments_chunk: string }> = {}
+        let pendingBuiltInTextBuffer = ''
 
         try {
           console.log(`[Agent Loop] Iteration ${toolCallCount + 1} for event: ${eventId}`)
@@ -844,13 +845,21 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
             switch (chunk.type) {
               case 'text':
                 if (chunk.content) {
-                  currentContent += chunk.content
-                  yield {
-                    type: 'response',
-                    data: {
+                  // 处理文本中的 <built_in_tool_call> 标签，并将普通文本或工具事件下发给前端
+                  const { updatedContent, pendingBuffer, responses } =
+                    await this.processBuiltInToolStreamingText({
+                      chunkContent: chunk.content,
+                      currentContent,
+                      pendingBuffer: pendingBuiltInTextBuffer,
                       eventId,
-                      content: chunk.content
-                    }
+                      currentToolCalls,
+                      providerId
+                    })
+                  currentContent = updatedContent
+                  pendingBuiltInTextBuffer = pendingBuffer
+                  // 将辅助函数收集到的响应逐条发送
+                  for (const response of responses) {
+                    yield response
                   }
                 }
                 break
@@ -989,7 +998,28 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
                 console.log(
                   `Provider stream stopped for event ${eventId}. Reason: ${chunk.stop_reason}`
                 )
-                if (chunk.stop_reason === 'tool_use') {
+                if (pendingBuiltInTextBuffer) {
+                  const remainingText = pendingBuiltInTextBuffer
+                  pendingBuiltInTextBuffer = ''
+                  if (remainingText) {
+                    currentContent += remainingText
+                    yield {
+                      type: 'response',
+                      data: {
+                        eventId,
+                        content: remainingText
+                      }
+                    }
+                  }
+                }
+
+                const hasPendingToolData = Object.keys(currentToolChunks).length > 0
+                const shouldContinue =
+                  chunk.stop_reason === 'tool_use' ||
+                  currentToolCalls.length > 0 ||
+                  hasPendingToolData
+
+                if (shouldContinue) {
                   // Consolidate any remaining tool call chunks
                   for (const id in currentToolChunks) {
                     currentToolCalls.push({
@@ -1052,7 +1082,145 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
 
               toolCallCount++
 
-              // Find the tool definition to get server info
+              // Check if it's a built-in tool
+              if (presenter.builtInToolsPresenter.isBuiltInTool(toolCall.name)) {
+                // Handle built-in tool execution
+                yield {
+                  type: 'response',
+                  data: {
+                    eventId,
+                    tool_call: 'running',
+                    tool_call_id: toolCall.id,
+                    tool_call_name: toolCall.name,
+                    tool_call_params: toolCall.arguments,
+                    tool_call_server_name: 'Built-in Tool',
+                    tool_call_server_icons: [],
+                    tool_call_server_description: 'System built-in tool'
+                  }
+                }
+
+                try {
+                  // Execute built-in tool via presenter
+                  const toolResponse = await presenter.builtInToolsPresenter.executeBuiltInTool(
+                    toolCall.name,
+                    JSON.parse(toolCall.arguments),
+                    toolCall.id
+                  )
+
+                  if (abortController.signal.aborted) break // Check after tool call returns
+
+                  // Non-native FC: Add tool execution record to conversation history for next LLM turn.
+                  const formattedToolRecordText = `<function_call>${JSON.stringify({ function_call_record: { name: toolCall.name, arguments: toolCall.arguments, response: toolResponse.content } })}</function_call>`
+
+                  let lastAssistantMessage = conversationMessages.findLast(
+                    (m) => m.role === 'assistant'
+                  )
+
+                  if (lastAssistantMessage) {
+                    if (typeof lastAssistantMessage.content === 'string') {
+                      lastAssistantMessage.content += formattedToolRecordText + '\n'
+                    } else if (Array.isArray(lastAssistantMessage.content)) {
+                      lastAssistantMessage.content.push({
+                        type: 'text',
+                        text: formattedToolRecordText + '\n'
+                      })
+                    } else {
+                      lastAssistantMessage.content = [
+                        { type: 'text', text: formattedToolRecordText + '\n' }
+                      ]
+                    }
+                  } else {
+                    conversationMessages.push({
+                      role: 'assistant',
+                      content: [{ type: 'text', text: formattedToolRecordText + '\n' }]
+                    })
+                    lastAssistantMessage = conversationMessages[conversationMessages.length - 1]
+                  }
+
+                  const userPromptText =
+                    '以上是你刚执行的工具调用及其响应信息，已帮你插入，请仔细阅读工具响应，并继续你的回答。'
+                  conversationMessages.push({
+                    role: 'user',
+                    content: [{ type: 'text', text: userPromptText }]
+                  })
+
+                  yield {
+                    type: 'response',
+                    data: {
+                      eventId,
+                      tool_call: 'end',
+                      tool_call_id: toolCall.id,
+                      tool_call_response: toolResponse.content,
+                      tool_call_name: toolCall.name,
+                      tool_call_params: toolCall.arguments,
+                      tool_call_server_name: 'Built-in Tool',
+                      tool_call_server_icons: [],
+                      tool_call_server_description: 'System built-in tool',
+                      tool_call_response_raw: toolResponse.rawData
+                    }
+                  }
+                } catch (toolError) {
+                  if (abortController.signal.aborted) break
+
+                  console.error(
+                    `Built-in tool execution error for ${toolCall.name} (event ${eventId}):`,
+                    toolError
+                  )
+                  const errorMessage =
+                    toolError instanceof Error ? toolError.message : String(toolError)
+
+                  const formattedErrorText = `编号为 ${toolCall.id} 的工具 ${toolCall.name} 调用执行失败: ${errorMessage}`
+
+                  let lastAssistantMessage = conversationMessages.findLast(
+                    (m) => m.role === 'assistant'
+                  )
+                  if (lastAssistantMessage) {
+                    if (typeof lastAssistantMessage.content === 'string') {
+                      lastAssistantMessage.content += '\n' + formattedErrorText + '\n'
+                    } else if (Array.isArray(lastAssistantMessage.content)) {
+                      lastAssistantMessage.content.push({
+                        type: 'text',
+                        text: '\n' + formattedErrorText + '\n'
+                      })
+                    } else {
+                      lastAssistantMessage.content = [
+                        { type: 'text', text: '\n' + formattedErrorText + '\n' }
+                      ]
+                    }
+                  } else {
+                    conversationMessages.push({
+                      role: 'assistant',
+                      content: [{ type: 'text', text: formattedErrorText + '\n' }]
+                    })
+                  }
+
+                  const userPromptText =
+                    '以上是你刚调用的工具及其执行的错误信息，已帮你插入，请根据情况继续回答或重新尝试。'
+                  conversationMessages.push({
+                    role: 'user',
+                    content: [{ type: 'text', text: userPromptText }]
+                  })
+
+                  yield {
+                    type: 'response',
+                    data: {
+                      eventId,
+                      tool_call: 'error',
+                      tool_call_id: toolCall.id,
+                      tool_call_name: toolCall.name,
+                      tool_call_params: toolCall.arguments,
+                      tool_call_response: errorMessage,
+                      tool_call_server_name: 'Built-in Tool',
+                      tool_call_server_icons: [],
+                      tool_call_server_description: 'System built-in tool'
+                    }
+                  }
+                }
+
+                continue // Skip to next tool call since built-in tool is handled
+              }
+
+              // Find the tool definition to get server info (for MCP tools)
               const toolDef = (
                 await presenter.mcpPresenter.getAllToolDefinitions(enabledMcpTools)
               ).find((t) => t.function.name === toolCall.name)
@@ -1875,6 +2043,231 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
       }
       this.providerRateLimitStates.delete(providerId)
       console.log(`[LLMProviderPresenter] Cleaned up rate limit state for ${providerId}`)
+    }
+  }
+
+  private async processBuiltInToolStreamingText({
+    chunkContent,
+    currentContent,
+    pendingBuffer,
+    eventId,
+    currentToolCalls,
+    providerId
+  }: {
+    chunkContent: string
+    currentContent: string
+    pendingBuffer: string
+    eventId: string
+    currentToolCalls: Array<{ id: string; name: string; arguments: string }>
+    providerId: string
+  }): Promise<{
+    updatedContent: string
+    pendingBuffer: string
+    responses: Array<{ type: 'response'; data: any }>
+  }> {
+    // 缓存标记和基本状态
+    const builtInStartTag = '<built_in_tool_call>'
+    const builtInEndTag = '</built_in_tool_call>'
+    const responses: Array<{ type: 'response'; data: any }> = []
+    let mergedBuffer = pendingBuffer + chunkContent
+    let updatedContent = currentContent
+
+    // 计算可安全输出的文本长度，避免截断标签
+    const getSafeFlushIndex = (buffer: string): number => {
+      const maxCheckLength = Math.min(builtInStartTag.length - 1, buffer.length)
+      for (let len = maxCheckLength; len > 0; len--) {
+        const suffix = buffer.slice(buffer.length - len)
+        if (builtInStartTag.startsWith(suffix)) {
+          return buffer.length - len
+        }
+      }
+      return buffer.length
+    }
+
+    while (mergedBuffer.length > 0) {
+      const startIndex = mergedBuffer.indexOf(builtInStartTag)
+
+      // 没有起始标签时，输出纯文本，剩余部分保留等待更多数据
+      if (startIndex === -1) {
+        const safeFlushIndex = getSafeFlushIndex(mergedBuffer)
+        const flushText = mergedBuffer.slice(0, safeFlushIndex)
+
+        if (flushText) {
+          updatedContent += flushText
+          responses.push({
+            type: 'response',
+            data: {
+              eventId,
+              content: flushText
+            }
+          })
+        }
+
+        const remaining = mergedBuffer.slice(safeFlushIndex)
+        return { updatedContent, pendingBuffer: remaining, responses }
+      }
+
+      // 输出起始标签之前的纯文本
+      const textBeforeTag = mergedBuffer.slice(0, startIndex)
+      if (textBeforeTag) {
+        updatedContent += textBeforeTag
+        responses.push({
+          type: 'response',
+          data: {
+            eventId,
+            content: textBeforeTag
+          }
+        })
+      }
+
+      // 剩下的缓冲区从起始标签开始
+      mergedBuffer = mergedBuffer.slice(startIndex)
+
+      const endIndex = mergedBuffer.indexOf(builtInEndTag, builtInStartTag.length)
+
+      // 没有闭合标签，继续等待后续数据
+      if (endIndex === -1) {
+        return { updatedContent, pendingBuffer: mergedBuffer, responses }
+      }
+
+      // 截取完整的内置工具标签块
+      const builtInBlock = mergedBuffer.slice(0, endIndex + builtInEndTag.length)
+
+      const parsedCalls = this.parseBuiltInToolCalls(builtInBlock, `non-native-${providerId}`)
+
+      if (parsedCalls.length === 0) {
+        // 解析失败则直接当作纯文本输出
+        updatedContent += builtInBlock
+        responses.push({
+          type: 'response',
+          data: {
+            eventId,
+            content: builtInBlock
+          }
+        })
+      } else {
+        // 解析成功则缓存工具信息，并通知前端工具调用事件
+        for (const call of parsedCalls) {
+          currentToolCalls.push({
+            id: call.id,
+            name: call.name,
+            arguments: call.arguments
+          })
+
+          responses.push({
+            type: 'response',
+            data: {
+              eventId,
+              tool_call: 'start',
+              tool_call_id: call.id,
+              tool_call_name: call.name,
+              tool_call_params: ''
+            }
+          })
+
+          responses.push({
+            type: 'response',
+            data: {
+              eventId,
+              tool_call: 'update',
+              tool_call_id: call.id,
+              tool_call_name: call.name,
+              tool_call_params: call.arguments
+            }
+          })
+        }
+      }
+
+      // 移动到下一个待处理区间
+      mergedBuffer = mergedBuffer.slice(endIndex + builtInEndTag.length)
+    }
+
+    return { updatedContent, pendingBuffer: mergedBuffer, responses }
+  }
+
+  private parseBuiltInToolCalls(
+    response: string,
+    fallbackIdPrefix: string = 'tool-call'
+  ): Array<{ id: string; name: string; arguments: string }> {
+    try {
+      const results: Array<{ id: string; name: string; arguments: string }> = []
+
+      const blocks = response.match(/<built_in_tool_call>[\s\S]*?<\/built_in_tool_call>/g) || [
+        response
+      ]
+
+      const parseLeafArgs = (xml: string): Record<string, any> => {
+        const args: Record<string, any> = {}
+        const leaf = /<([a-zA-Z0-9_\-]+)>\s*([^<>]+?)\s*<\/\1>/g
+        let match: RegExpExecArray | null
+        while ((match = leaf.exec(xml)) !== null) {
+          const key = match[1]
+          const val = match[2]
+          if (key in args) {
+            const prev = args[key]
+            args[key] = Array.isArray(prev) ? [...prev, val] : [prev, val]
+          } else {
+            args[key] = val
+          }
+        }
+        return args
+      }
+
+      blocks.forEach((block, index) => {
+        try {
+          const builtWrapperMatch = block.match(
+            /<built_in_tool_call>([\s\S]*?)<\/built_in_tool_call>/
+          )
+          const blockBody = builtWrapperMatch ? builtWrapperMatch[1].trim() : block.trim()
+
+          const toolTagMatch = blockBody.match(/^<([a-zA-Z0-9_\-]+)\b[\s\S]*?<\/\1>/)
+          if (!toolTagMatch) return
+          const toolName = toolTagMatch[1]
+
+          const innerMatch = blockBody.match(new RegExp(`<${toolName}>([\\s\\S]*?)</${toolName}>`))
+          const inner = innerMatch ? innerMatch[1] : ''
+
+          const rawArgs = inner.trim()
+
+          let argsObj: any = {}
+          const jsonCandidate = rawArgs.replace(/^```[a-zA-Z]*\n?|```$/g, '').trim()
+          if (
+            (jsonCandidate.startsWith('{') && jsonCandidate.endsWith('}')) ||
+            (jsonCandidate.startsWith('[') && jsonCandidate.endsWith(']'))
+          ) {
+            try {
+              argsObj = JSON.parse(jsonCandidate)
+            } catch {
+              argsObj = parseLeafArgs(rawArgs)
+            }
+          } else {
+            argsObj = parseLeafArgs(rawArgs)
+          }
+
+          const id = `${toolName || fallbackIdPrefix}-${index}-${Date.now()}`
+          let argsStr = '{}'
+          try {
+            argsStr = JSON.stringify(argsObj)
+          } catch {
+            argsStr = '{}'
+          }
+
+          results.push({ id, name: toolName, arguments: argsStr })
+        } catch (parseError) {
+          console.warn(
+            '[LLMProviderPresenter] Failed to parse built-in tool call block:',
+            parseError
+          )
+        }
+      })
+
+      return results
+    } catch (error) {
+      console.error(
+        '[LLMProviderPresenter] Unexpected error while parsing built-in tool calls:',
+        error
+      )
+      return []
     }
   }
 
