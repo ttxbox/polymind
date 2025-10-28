@@ -40,6 +40,22 @@ export type CONVERSATION = {
   is_pinned?: number
 }
 
+export type AIScriptResult = {
+  resultType: 'shell_script' | 'report'
+  objectiveSummary: string
+  shellScript?: {
+    script: string
+    instructions?: string
+  }
+  report?: {
+    title: string
+    contentMarkdown: string
+    summary?: string
+  }
+  notes?: string
+  rawResponse?: string
+}
+
 export type MESSAGE_STATUS = 'sent' | 'pending' | 'error'
 export type MESSAGE_ROLE = 'user' | 'assistant' | 'system' | 'function' | 'agent'
 
@@ -171,6 +187,11 @@ export interface IThreadPresenter {
   continueStreamCompletion(conversationId: string, queryMsgId: string): Promise<AssistantMessage>
   toggleConversationPinned(conversationId: string, isPinned: boolean): Promise<void>
   findTabForConversation(conversationId: string): Promise<number | null>
+  generateAiScript(
+    conversationId: string,
+    targetMessageId: string,
+    options?: { promptOverride?: string }
+  ): Promise<AIScriptResult>
 
   // Permission handling
   handlePermissionResponse(
