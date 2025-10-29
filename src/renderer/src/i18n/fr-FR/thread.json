@@ -21,12 +21,29 @@
     "delete": "Supprimer le message",
     "capturing": "Capture en cours...",
     "copyFromTopSuccess": "Image de session complète copiée",
-    "copyImageWithLongPress": "Copier en image (appui long pour capturer depuis le haut)"
+    "copyImageWithLongPress": "Copier en image (appui long pour capturer depuis le haut)",
+    "AIScript": "Session scriptée AI",
+    "AIScriptDescription": "Analysez la conversation pour générer un script shell robuste ou un rapport structuré.",
+    "AIScriptLoading": "Génération de l'AI Script...",
+    "AIScriptError": "Échec de la génération de l'AI Script",
+    "AIScriptObjective": "Résumé de la session",
+    "AIScriptPlatformLabel": "Plateforme cible",
+    "AIScriptCopyScript": "Copier le script",
+    "AIScriptInstructions": "Instructions du script",
+    "AIScriptScriptLabel": "Contenu du script shell",
+    "AIScriptReportLabel": "Rapport structuré",
+    "AIScriptCopyReport": "Copier le rapport",
+    "AIScriptNotes": "Notes"
   },
   "message": {
     "toolbar": {
       "save": "Enregistrer"
     }
+  },
+  "aiScript": {
+    "description": "Consultez ici l'analyse AI Script et copiez ou enregistrez les éléments générés.",
+    "sourceMessage": "Message du LLM",
+    "emptyHint": "Sélectionnez une réponse de l'assistant puis cliquez sur « AI Script » pour afficher le résultat ici."
   },
   "export": {
     "failed": "Échec de l'exportation",

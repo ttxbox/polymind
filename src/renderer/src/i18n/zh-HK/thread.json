@@ -21,12 +21,29 @@
     "delete": "刪除消息",
     "capturing": "正在截圖...",
     "copyFromTopSuccess": "已復製完整會話圖片",
-    "copyImageWithLongPress": "複製為圖片（長按可從頂部開始截取）"
+    "copyImageWithLongPress": "複製為圖片（長按可從頂部開始截取）",
+    "AIScript": "AI 腳本會話",
+    "AIScriptDescription": "分析會話內容，生成穩健可重用的 Shell 腳本或結構化報告。",
+    "AIScriptLoading": "正在產生 AI Script...",
+    "AIScriptError": "AI Script 產生失敗",
+    "AIScriptObjective": "會話概要",
+    "AIScriptPlatformLabel": "適用平台",
+    "AIScriptCopyScript": "複製腳本",
+    "AIScriptInstructions": "腳本說明",
+    "AIScriptScriptLabel": "Shell 腳本內容",
+    "AIScriptReportLabel": "結構化報告",
+    "AIScriptCopyReport": "複製報告",
+    "AIScriptNotes": "補充說明"
   },
   "message": {
     "toolbar": {
       "save": "保存"
     }
+  },
+  "aiScript": {
+    "description": "在此檢視 AI Script 的分析結果，可複製或保存生成內容。",
+    "sourceMessage": "LLM 訊息",
+    "emptyHint": "請選擇助手回覆並點擊「AI Script」，結果會顯示於此。"
   },
   "export": {
     "failed": "導出失敗",

@@ -30,6 +30,23 @@
     "retry": "重新生成",
     "fork": "分叉到新会话",
     "edit": "编辑消息",
-    "delete": "删除消息"
+    "delete": "删除消息",
+    "AIScript": "AI 脚本会话",
+    "AIScriptDescription": "分析会话内容，生成稳定可复用的 Shell 脚本或结构化报告。",
+    "AIScriptLoading": "正在生成 AI Script...",
+    "AIScriptError": "AI Script 生成失败",
+    "AIScriptObjective": "会话概要",
+    "AIScriptPlatformLabel": "适用平台",
+    "AIScriptCopyScript": "复制脚本",
+    "AIScriptInstructions": "脚本说明",
+    "AIScriptScriptLabel": "Shell 脚本内容",
+    "AIScriptReportLabel": "结构化报告",
+    "AIScriptCopyReport": "复制报告",
+    "AIScriptNotes": "补充说明"
+  },
+  "aiScript": {
+    "description": "在此查看 AI Script 分析结果，并复制或保存生成内容。",
+    "sourceMessage": "LLM 消息",
+    "emptyHint": "选择一条助手回复并点击「AI Script」，结果会展示在这里。"
   }
 }
