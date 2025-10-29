@@ -28,10 +28,32 @@
               <input
                 type="text"
                 :placeholder="t('agents.search.placeholder')"
-                class="pl-10 pr-4 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-64"
+                class="pl-10 pr-4 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-56 h-8"
                 v-model="searchQuery"
               />
             </div>
+
+            <!-- 导入按钮 -->
+            <Button
+              variant="outline"
+              size="sm"
+              @click="showImportDialog = true"
+              class="flex items-center gap-2 h-8"
+            >
+              <Icon icon="lucide:download" class="w-4 h-4" />
+              {{ t('agents.import.button') }}
+            </Button>
+            
+            <!-- 创建智能体按钮 -->
+            <Button
+              variant="default"
+              size="sm"
+              @click="showCreateDialog = true"
+              class="flex items-center gap-2 h-8"
+            >
+              <Icon icon="lucide:plus" class="w-4 h-4" />
+              {{ t('agents.create.button') }}
+            </Button>
           </div>
         </div>
       </div>
@@ -59,6 +81,18 @@
       </div>
     </div>
   </div>
+
+  <!-- 导入对话框 -->
+  <AgentImportDialog
+    v-model:show-dialog="showImportDialog"
+    @imported="handleAgentImported"
+  />
+
+  <!-- 创建智能体对话框 -->
+  <AgentCreateDialog
+    v-model:show-dialog="showCreateDialog"
+    @created="handleAgentCreated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -67,9 +101,12 @@ import { Icon } from '@iconify/vue'
 import { Agent } from '@shared/presenter'
 import AgentCard from '@/components/agent-config/AgentCard.vue'
 import CategorySidebar from '@/components/agent-config//CategorySidebar.vue'
+import AgentImportDialog from '@/components/agent-config/AgentImportDialog.vue'
+import AgentCreateDialog from '@/components/agent-config/AgentCreateDialog.vue'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useI18n } from 'vue-i18n'
 import { usePresenter } from '@/composables/usePresenter'
+import { Button } from '@/components/ui/button'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -78,6 +115,12 @@ const { t } = useI18n()
 const searchQuery = ref('')
 
 const agents = ref<Agent[]>([])
+
+// 导入对话框状态
+const showImportDialog = ref(false)
+
+// 创建对话框状态
+const showCreateDialog = ref(false)
 
 // 加载智能体数据
 const loadAgents = async () => {
@@ -94,6 +137,7 @@ const loadAgents = async () => {
 
 // 分类数据 - 使用计算属性确保语言切换时更新
 const categories = computed(() => [
+  { id: 'my', name: t('agents.categories.my') },
   { id: 'all', name: t('agents.categories.all') },
   { id: 'development', name: t('agents.categories.development') },
   { id: 'productivity', name: t('agents.categories.productivity') },
@@ -103,7 +147,7 @@ const categories = computed(() => [
   { id: 'support', name: t('agents.categories.support') }
 ])
 
-const activeCategory = ref('all')
+const activeCategory = ref('my')
 
 
 // 计算属性 - 根据分类和搜索筛选智能体
@@ -111,8 +155,12 @@ const filteredAgents = computed(() => {
   let filtered = agents.value
 
   // 按分类筛选
-  if (activeCategory.value !== 'all') {
-    filtered = filtered.filter(agent => agent.category === activeCategory.value)
+  if (activeCategory.value === 'my') {
+    // "我的"分类显示所有分类为'my'的智能体
+    filtered = filtered.filter(agent => agent.category === 'my')
+  } else if (activeCategory.value !== 'all') {
+    // 其他分类显示对应分类的智能体，但排除分类为'my'的智能体
+    filtered = filtered.filter(agent => agent.category === activeCategory.value && agent.category !== 'my')
   }
 
   // 按搜索查询筛选
@@ -135,6 +183,7 @@ const filteredAgents = computed(() => {
 // 获取当前分类图标
 const getCurrentCategoryIcon = () => {
   const icons: Record<string, string> = {
+    my: 'lucide:user',
     all: 'lucide:grid',
     development: 'lucide:code',
     productivity: 'lucide:edit-3',
@@ -265,6 +314,18 @@ onMounted(async () => {
   // 设置事件监听器
   setupEventListeners()
 })
+
+// 处理智能体导入完成
+const handleAgentImported = async () => {
+  // 重新加载智能体列表
+  await loadAgents()
+}
+
+// 处理智能体创建完成
+const handleAgentCreated = async () => {
+  // 重新加载智能体列表
+  await loadAgents()
+}
 
 onBeforeUnmount(() => {
   console.log('Agents.vue 组件即将卸载')

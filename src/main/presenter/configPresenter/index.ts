@@ -1565,6 +1565,13 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   /**
+   * 从URL导入智能体配置
+   */
+  async importAgentFromUrl(url: string): Promise<Agent> {
+    return this.agentConfHelper.importAgentFromUrl(url)
+  }
+
+  /**
    * 获取智能体配置助手
    */
   getAgentConfHelper(): AgentConfHelper {

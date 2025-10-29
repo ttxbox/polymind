@@ -18,7 +18,7 @@
       <div class="flex items-center gap-2">
         
         <!-- 提供商信息 -->
-        <span class="text-xs flex items-center">
+        <span v-if="agent.provider?.organization" class="text-xs flex items-center">
           by
           <a
             v-if="agent.provider?.url"
@@ -28,14 +28,14 @@
             @click.stop
             :title="agent.provider.url"
           >
-            {{ agent.provider?.organization || 'Unknown' }}
+            {{ agent.provider.organization }}
           </a>
           <span
             v-else
             class="max-w-[120px] truncate ml-1"
-            :title="agent.provider?.organization || 'Unknown'"
+            :title="agent.provider.organization"
           >
-            {{ agent.provider?.organization || 'Unknown' }}
+            {{ agent.provider.organization }}
           </span>
         </span>
       </div>
@@ -134,6 +134,7 @@ const showDetails = (agent: Agent) => {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
 }
 </style>
