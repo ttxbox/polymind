@@ -24,6 +24,9 @@
     "baseUrl": ".",
     "module": "esnext",
     "paths": {
+      "@/stores/*": [
+        "src/renderer/src/stores/*"
+      ],
       "@/*": [
         "src/renderer/src/*"
       ],
