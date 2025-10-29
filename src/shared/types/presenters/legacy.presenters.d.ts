@@ -1103,6 +1103,40 @@ export interface ProgressResponse {
   completed?: number
 }
 
+//
+export interface IBuiltInToolsPresenter {
+  /**
+   * 获取所有内置工具的定义
+   */
+  getBuiltInTools(): Promise<Tool[]>
+
+  /**
+   * 获取工具的描述信息
+   * @param toolName 工具名称
+   */
+  getToolDescription(toolName: string): Promise<string | null>
+
+  /**
+   * 检查给定名称是否为内置工具
+   */
+  isBuiltInTool(toolName: string): boolean
+
+  /**
+   * 直接执行内置工具（返回底层执行结果，包含 rawData）
+   */
+  executeBuiltInTool(
+    toolName: string,
+    args: any,
+    toolCallId: string
+  ): Promise<{
+    toolCallId: string
+    content: string
+    success: boolean
+    metadata?: Record<string, any>
+    rawData: MCPToolResponse
+  }>
+}
+
 // MCP related type definitions
 export interface MCPServerConfig {
   command: string
