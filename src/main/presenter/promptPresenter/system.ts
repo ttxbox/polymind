@@ -6,6 +6,7 @@ import {
   getObjectiveSection,
   getSharedToolUseSection,
   getToolUseGuidelinesSection,
+  getToolDescriptionsSection,
   addCustomInstructions,
   markdownFormattingSection
 } from './sections'
@@ -34,11 +35,12 @@ async function generatePrompt(
 		${markdownFormattingSection()}
 
 		${getSharedToolUseSection()}
-		)}
+
+		${getToolDescriptionsSection()}
 
 		${getToolUseGuidelinesSection()}
 
-		${getSystemInfoSection(cwd || '')}
+		${getSystemInfoSection()}
 
 		${getObjectiveSection()}
 
