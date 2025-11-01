@@ -82,6 +82,7 @@
         @copy="handleAction('copy')"
         @copy-image="handleAction('copyImage')"
         @copy-image-from-top="handleAction('copyImageFromTop')"
+        @ai-script="handleAction('aiScript')"
         @prev="handleAction('prev')"
         @next="handleAction('next')"
         @fork="handleAction('fork')"
@@ -108,6 +109,7 @@
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -139,6 +141,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useThemeStore } from '@/stores/theme'
+import { useAiScriptStore } from '@/stores/aiScript'
 const props = defineProps<{
   message: AssistantMessage
   isCapturingImage: boolean
@@ -147,6 +150,7 @@ const props = defineProps<{
 const themeStore = useThemeStore()
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
+const aiScriptStore = useAiScriptStore()
 const currentVariantIndex = ref(0)
 const { t } = useI18n()
 
@@ -252,6 +256,25 @@ const confirmFork = async () => {
   }
 }
 
+const triggerAiScript = async () => {
+  aiScriptStore.showLoading(currentMessage.value as AssistantMessage)
+
+  if (!currentThreadId.value) {
+    aiScriptStore.setError(t('common.error.requestFailed'))
+    return
+  }
+
+  try {
+    const result = await chatStore.generateAiScript(currentMessage.value.id)
+    aiScriptStore.setResult(result)
+  } catch (error) {
+    console.error('生成 AI Script 失败:', error)
+    aiScriptStore.setError(
+      error instanceof Error ? error.message : t('common.error.requestFailed')
+    )
+  }
+}
+
 type HandleActionType =
   | 'retry'
   | 'delete'
@@ -261,6 +284,7 @@ type HandleActionType =
   | 'copyImage'
   | 'copyImageFromTop'
   | 'fork'
+  | 'aiScript'
 
 const handleAction = (action: HandleActionType) => {
   if (action === 'retry') {
@@ -315,6 +339,8 @@ const handleAction = (action: HandleActionType) => {
     })
   } else if (action === 'fork') {
     showForkDialog()
+  } else if (action === 'aiScript') {
+    triggerAiScript()
   }
 }
 

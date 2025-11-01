@@ -21,12 +21,29 @@
     "delete": "Удалить сообщение",
     "capturing": "Захват...",
     "copyFromTopSuccess": "Полное сессионное изображение скопировано",
-    "copyImageWithLongPress": "Копировать как изображение (долгое нажатие — для захвата сверху)"
+    "copyImageWithLongPress": "Копировать как изображение (долгое нажатие — для захвата сверху)",
+    "AIScript": "AI скриптовая сессия",
+    "AIScriptDescription": "Проанализируйте диалог и сформируйте надежный shell-скрипт или структурированный отчёт.",
+    "AIScriptLoading": "Генерация AI Script...",
+    "AIScriptError": "Не удалось создать AI Script",
+    "AIScriptObjective": "Краткое резюме сессии",
+    "AIScriptPlatformLabel": "Целевая платформа",
+    "AIScriptCopyScript": "Копировать скрипт",
+    "AIScriptInstructions": "Описание скрипта",
+    "AIScriptScriptLabel": "Содержимое shell-скрипта",
+    "AIScriptReportLabel": "Структурированный отчёт",
+    "AIScriptCopyReport": "Копировать отчет",
+    "AIScriptNotes": "Примечания"
   },
   "message": {
     "toolbar": {
       "save": "Сохранить"
     }
+  },
+  "aiScript": {
+    "description": "Здесь отображается анализ AI Script; можно скопировать или сохранить результат.",
+    "sourceMessage": "LLM-сообщение",
+    "emptyHint": "Выберите ответ ассистента и нажмите «AI Script», чтобы результат появился здесь."
   },
   "export": {
     "failed": "Экспорт не удался",

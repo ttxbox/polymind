@@ -16,6 +16,9 @@
       "@/*": [
         "src/main/*"
       ],
+      "@/stores/*": [
+        "src/renderer/src/stores/*"
+      ],
       "@shared/*": [
         "src/shared/*"
       ]
