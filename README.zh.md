@@ -286,7 +286,7 @@ $ pnpm run build:linux:arm64
 
 本项目的构建得益于这些优秀的开源库：
 
-- [polymind](https://gitee.com/openeuler/polymind)
+- [deepchat](https://github.com/thinkinaixyz/deepchat)
 - [Vue](https://vuejs.org/)
 - [Electron](https://www.electronjs.org/)
 - [Electron-Vite](https://electron-vite.org/)
