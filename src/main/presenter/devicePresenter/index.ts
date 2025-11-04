@@ -17,7 +17,7 @@ export class DevicePresenter implements IDevicePresenter {
   static getDefaultHeaders(): Record<string, string> {
     return {
       'HTTP-Referer': 'https://deepchatai.cn',
-      'X-Title': 'DeepChat'
+      'X-Title': 'PolyMind'
     }
   }
   async getAppVersion(): Promise<string> {

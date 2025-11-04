@@ -1,7 +1,7 @@
 {
-  "name": "DeepChat",
+  "name": "PolyMind",
   "version": "0.3.5",
-  "description": "DeepChat，一个简单易用的AI客户端",
+  "description": "PolyMind，一个简单易用的AI客户端",
   "main": "./out/main/index.js",
   "author": "ThinkInAIXYZ",
   "type": "module",

@@ -577,7 +577,7 @@ export class McpClient {
 
       // 创建 MCP 客户端
       this.client = new Client(
-        { name: 'DeepChat', version: app.getVersion() },
+        { name: 'PolyMind', version: app.getVersion() },
         {
           capabilities: {
             resources: {},

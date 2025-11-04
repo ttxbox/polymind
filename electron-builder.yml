@@ -1,5 +1,5 @@
-appId: com.wefonk.deepchat
-productName: DeepChat
+appId: com.wefonk.polymind
+productName: PolyMind
 directories:
   buildResources: build
 files:
@@ -50,7 +50,7 @@ electronLanguages:
   - fa-IR
   - fa
 win:
-  executableName: DeepChat
+  executableName: PolyMind
 nsis:
   artifactName: ${name}-${version}-windows-${arch}.${ext}
   shortcutName: ${productName}
@@ -84,8 +84,8 @@ linux:
   category: Utility
   artifactName: ${name}-${version}-linux-${arch}.${ext}
   mimeTypes:
-    - x-scheme-handler/deepchat
+    - x-scheme-handler/polymind
 npmRebuild: true
 publish:
   provider: generic
-  url: https://cdn.deepchatai.cn/upgrade/
+  url: https://cdn.polymindai.cn/upgrade/
