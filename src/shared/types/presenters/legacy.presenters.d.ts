@@ -517,9 +517,11 @@ export interface IConfigPresenter {
   // Agent management methods
   getAgents(): Promise<Agent[]>
   setAgents(agents: Agent[]): Promise<void>
+  addAgent(agent: Agent): Promise<void>
   installAgent(agentId: string): Promise<boolean>
   uninstallAgent(agentId: string): Promise<boolean>
   getAgentInstallStatus(agentId: string): Promise<boolean>
+  importAgentFromUrl(url: string): Promise<Agent>
 }
 export type RENDERER_MODEL_META = {
   id: string

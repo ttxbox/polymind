@@ -387,4 +387,146 @@ export class AgentConfHelper {
   getLastUpdateTime(): number {
     return this.store.get('lastUpdateTime') || Date.now()
   }
+  /**
+   * 从URL导入智能体配置
+   */
+  async importAgentFromUrl(url: string): Promise<Agent> {
+    try {
+      console.log('Importing agent from URL:', url)
+
+      // 验证URL格式
+      if (!url || !url.startsWith('http')) {
+        throw new Error('Invalid URL format')
+      }
+
+      // 确保URL以 .well-known/agent-card.json 结尾
+      let importUrl = url
+      if (!url.endsWith('.well-known/agent-card.json')) {
+        // 如果URL不以标准路径结尾，尝试添加标准路径
+        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url
+        importUrl = `${baseUrl}/.well-known/agent-card.json`
+      }
+
+      console.log('Fetching agent card from:', importUrl)
+
+      // 使用fetch获取agent-card.json
+      const response = await fetch(importUrl)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const agentCard = await response.json()
+      console.log('Received agent card:', agentCard)
+
+      // 验证agent-card.json格式
+      if (!agentCard.name || !agentCard.description) {
+        throw new Error('Invalid agent card format: missing required fields')
+      }
+
+      // 转换agent-card.json为Agent格式
+      const agent: Agent = {
+        id: this.generateAgentId(agentCard.name),
+        name: agentCard.name,
+        description: agentCard.description,
+        icon: agentCard.icon || 'lucide:bot',
+        category: 'my', // 导入的智能体分类为"我的"
+        installed: false,
+        version: agentCard.version || '1.0.0',
+        provider: agentCard.provider || {
+          organization: agentCard.author || 'Unknown',
+          url: agentCard.homepage || ''
+        },
+        skills: this.parseSkills(agentCard.skills || []),
+        mcpServers: agentCard.mcpServers || [],
+        config: agentCard.config || {}
+      }
+
+      // 直接保存智能体，名称重复检查由前端处理
+      const agents = await this.getAgents()
+      agents.push(agent)
+      await this.setAgents(agents)
+
+      console.log('Agent imported successfully:', agent.name)
+      return agent
+    } catch (error) {
+      console.error('Failed to import agent from URL:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取URL导入的智能体数据（不保存）
+   */
+  async getImportAgentData(
+    url: string
+  ): Promise<{ name: string; description: string; agentCard: any }> {
+    try {
+      console.log('Getting import agent data for URL:', url)
+
+      // 验证URL格式
+      if (!url || !url.startsWith('http')) {
+        throw new Error('Invalid URL format')
+      }
+
+      // 确保URL以 .well-known/agent-card.json 结尾
+      let importUrl = url
+      if (!url.endsWith('.well-known/agent-card.json')) {
+        // 如果URL不以标准路径结尾，尝试添加标准路径
+        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url
+        importUrl = `${baseUrl}/.well-known/agent-card.json`
+      }
+
+      console.log('Fetching agent card from:', importUrl)
+
+      // 使用fetch获取agent-card.json
+      const response = await fetch(importUrl)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const agentCard = await response.json()
+      console.log('Received agent card:', agentCard)
+
+      // 验证agent-card.json格式
+      if (!agentCard.name || !agentCard.description) {
+        throw new Error('Invalid agent card format: missing required fields')
+      }
+
+      return {
+        name: agentCard.name,
+        description: agentCard.description,
+        agentCard
+      }
+    } catch (error) {
+      console.error('Failed to get import agent data:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 生成智能体ID
+   */
+  private generateAgentId(name: string): string {
+    // 将名称转换为小写，替换空格为连字符，并添加随机后缀避免冲突
+    const baseId = name.toLowerCase().replace(/\s+/g, '-')
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    return `${baseId}-${randomSuffix}`
+  }
+
+  /**
+   * 解析技能数据
+   */
+  private parseSkills(skills: any[]): any[] {
+    return skills.map((skill, index) => ({
+      id: `skill-${index}`,
+      name: skill.name || 'Unknown Skill',
+      description: skill.description || '',
+      tags: skill.tags || [],
+      examples: skill.examples || [],
+      imputModes: skill.inputModes || ['text'],
+      ouputModes: skill.outputModes || ['text']
+    }))
+  }
 }

@@ -59,6 +59,7 @@ const emit = defineEmits<{
 // 获取分类图标
 const getCategoryIcon = (categoryId: string) => {
   const icons: Record<string, string> = {
+    my: 'lucide:user',
     all: 'lucide:grid',
     development: 'lucide:code',
     productivity: 'lucide:edit-3',
