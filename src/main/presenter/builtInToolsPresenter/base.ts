@@ -36,7 +36,7 @@ export function validateToolArgs(
 
     for (const key of required) {
       if (normalizedArgs == null || !(key in normalizedArgs)) {
-        return { ok: false, message: `缺少必填参数: ${key}` }
+        return { ok: false, message: `Required parameters are missing: ${key}` }
       }
     }
 
@@ -46,13 +46,13 @@ export function validateToolArgs(
       const schemaTypes = getSchemaTypes((schema as any)?.type)
 
       if (schemaTypes.has('string') && typeof val !== 'string') {
-        return { ok: false, message: `参数 ${key} 需要为 string` }
+        return { ok: false, message: `The parameter ${key} needs to be string` }
       }
       if (schemaTypes.has('boolean') && typeof val !== 'boolean') {
-        return { ok: false, message: `参数 ${key} 需要为 boolean` }
+        return { ok: false, message: `The parameter ${key} needs to be boolean` }
       }
       if ((schemaTypes.has('number') || schemaTypes.has('integer')) && typeof val !== 'number') {
-        return { ok: false, message: `参数 ${key} 需要为 number` }
+        return { ok: false, message: `The parameter ${key} needs to be number` }
       }
     }
 
