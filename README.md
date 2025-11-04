@@ -287,7 +287,7 @@ Thank you for considering contributing to PolyMind! The contribution guide can b
 
 This project is built with the help of these awesome libraries:
 
-- [polymind](https://github.com/thinkinaixyz/polymind)
+- [deepchat](https://github.com/thinkinaixyz/deepchat)
 - [Vue](https://vuejs.org/)
 - [Electron](https://www.electronjs.org/)
 - [Electron-Vite](https://electron-vite.org/)
