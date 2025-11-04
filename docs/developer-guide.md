@@ -1,6 +1,6 @@
-# DeepChat Developer Guide
+# PolyMind Developer Guide
 
-This guide provides information for developers looking to understand, build, and contribute to the DeepChat project.
+This guide provides information for developers looking to understand, build, and contribute to the PolyMind project.
 
 ## 📑 Table of Contents
 
@@ -17,7 +17,7 @@ This guide provides information for developers looking to understand, build, and
 
 ## Project Structure
 
-The DeepChat repository is organized into several key directories:
+The PolyMind repository is organized into several key directories:
 
 -   **`src/`**: Contains the core source code of the application.
     -   **`src/main/`**: Code for Electron's main process (handles window management, system events, backend logic). Written in TypeScript.
@@ -37,7 +37,7 @@ For more details, refer to the "Project Structure" section in [CONTRIBUTING.md](
 
 ### Electron Architecture
 
-DeepChat is an Electron application. This means it has:
+PolyMind is an Electron application. This means it has:
 -   **Main Process**: A single process that is the entry point of the application. It runs Node.js and has access to system-level operations. It's responsible for creating and managing application windows (renderer processes) and handling application lifecycle events. The code for the main process is in `src/main/`. For a detailed explanation of the application lifecycle, see the [App Lifecycle Management](./app-lifecycle.md) document.
 -   **Renderer Processes**: Each window in DeepChat runs its own renderer process. This process is responsible for rendering web content (HTML, CSS, JavaScript). The UI is built using web technologies. The code for the renderer process is in `src/renderer/`.
 -   **Preload Scripts**: These scripts run in a privileged context in the renderer process and can expose specific Node.js APIs or main process functionalities to the renderer process via an IPC (Inter-Process Communication) bridge. See `src/preload/`.
@@ -73,7 +73,7 @@ Developers should familiarize themselves with these definition files to understa
 
 ## Model Context Protocol (MCP)
 
-The Model Context Protocol (MCP) is a core feature of DeepChat, enabling advanced capabilities like tool calling and search enhancement. As described in the `README.md`:
+The Model Context Protocol (MCP) is a core feature of PolyMind, enabling advanced capabilities like tool calling and search enhancement. As described in the `README.md`:
 
 -   It allows LLMs to use **Resources**, **Prompts**, and **Tools**.
 -   It supports features like code execution (via a built-in Node.js runtime), web information retrieval, and file operations.
@@ -89,7 +89,7 @@ For more detailed information on MCP, its design, and how to develop tools or in
 
 ## Development Setup
 
-To set up your local development environment for DeepChat:
+To set up your local development environment for PolyMind:
 
 1.  **Clone the repository.**
 2.  **Install Node.js** (Latest LTS version recommended).
@@ -104,7 +104,7 @@ After setup, you can usually start the development server using `npm run dev` or
 
 ## Building the Application
 
-Instructions for building the DeepChat application for different platforms (Windows, macOS, Linux) and architectures are available in the `README.md`:
+Instructions for building the PolyMind application for different platforms (Windows, macOS, Linux) and architectures are available in the `README.md`:
 
 -   Refer to the "[Build](https://github.com/ThinkInAIXYZ/deepchat#build)" section in the main `README.md` file for the necessary commands (e.g., `npm run build:win`, `npm run build:mac`, `npm run build:linux`).
 
@@ -112,7 +112,7 @@ The `README.md` also mentions that Windows and Linux packaging is handled by Git
 
 ## Contribution Guidelines
 
-If you wish to contribute to DeepChat, please review the contribution guidelines. They cover:
+If you wish to contribute to PolyMind, please review the contribution guidelines. They cover:
 
 -   Development process for internal and external contributors.
 -   Coding style (ESLint, Prettier).

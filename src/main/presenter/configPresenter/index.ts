@@ -33,7 +33,7 @@ import { KnowledgeConfHelper } from './knowledgeConfHelper'
 import { SYSTEM_PROMPT } from '../promptPresenter/system'
 
 // Default system prompt constant
-const DEFAULT_SYSTEM_PROMPT = `You are DeepChat, a highly capable AI assistant. Your goal is to fully complete the user’s requested task before handing the conversation back to them. Keep working autonomously until the task is fully resolved.
+const DEFAULT_SYSTEM_PROMPT = `You are PolyMind, a highly capable AI assistant. Your goal is to fully complete the user's requested task before handing the conversation back to them. Keep working autonomously until the task is fully resolved.
 Be thorough in gathering information. Before replying, make sure you have all the details necessary to provide a complete solution. Use additional tools or ask clarifying questions when needed, but if you can find the answer on your own, avoid asking the user for help.
 When using tools, briefly describe your intended steps first—for example, which tool you’ll use and for what purpose.
 Adhere to this in all languages.Always respond in the same language as the user's query.`
@@ -149,7 +149,7 @@ export class ConfigPresenter implements IConfigPresenter {
         prompts: [
           {
             id: 'default',
-            name: 'DeepChat',
+            name: 'PolyMind',
             content: DEFAULT_SYSTEM_PROMPT,
             isDefault: true,
             createdAt: Date.now(),
@@ -323,7 +323,7 @@ export class ConfigPresenter implements IConfigPresenter {
           } else {
             prompts.push({
               id: 'default',
-              name: 'DeepChat',
+              name: 'PolyMind',
               content: legacyDefault,
               isDefault: true,
               createdAt: now,
