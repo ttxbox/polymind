@@ -8,25 +8,28 @@ const execAsync = promisify(execCallback)
 
 export const executeCommandTool: BuiltInToolDefinition = {
   name: 'execute_command',
-  description: '在当前或指定工作目录中执行命令行指令，并返回标准输出和标准错误。',
+  description:
+    'Executes a command-line command in the current or specified working directory, and returns standard output and standard error.',
   parameters: {
     type: 'object',
     properties: {
       command: {
         type: 'string',
-        description: '要执行的完整命令字符串。'
+        description: 'The complete command string to execute.'
       },
       working_directory: {
         type: 'string',
-        description: '执行命令时使用的工作目录（可选，默认使用当前进程目录）。'
+        description:
+          'The working directory to use when executing the command (optional; the current process directory is the default).'
       },
       timeout: {
         type: 'number',
-        description: '命令允许运行的最长时间（毫秒，默认 30000）。'
+        description: 'Maximum time the command is allowed to run (milliseconds, default 30000)。'
       },
       shell: {
         type: 'string',
-        description: '用于执行命令的 shell（可选，留空则使用系统默认值）。'
+        description:
+          'The shell to use to execute the command (optional; if left blank, the system default is used)。'
       }
     },
     required: ['command']
@@ -41,14 +44,14 @@ export async function executeCommandToolHandler(
     const { command, working_directory, timeout, shell } = args ?? {}
 
     if (typeof command !== 'string' || command.trim().length === 0) {
-      throw new Error('command 参数不能为空，并且必须是字符串')
+      throw new Error('The command argument cannot be empty and must be a string')
     }
     const trimmedCommand = command.trim()
 
     let resolvedCwd = process.cwd()
     if (working_directory !== undefined) {
       if (typeof working_directory !== 'string' || working_directory.trim().length === 0) {
-        throw new Error('working_directory 必须是字符串')
+        throw new Error('working_directory must be a string')
       }
       const cwdCandidate = path.isAbsolute(working_directory)
         ? working_directory
@@ -56,10 +59,12 @@ export async function executeCommandToolHandler(
       try {
         const stats = await fs.stat(cwdCandidate)
         if (!stats.isDirectory()) {
-          throw new Error(`工作目录不是有效的目录: ${cwdCandidate}`)
+          throw new Error(`The working directory is not a valid directory: ${cwdCandidate}`)
         }
       } catch {
-        throw new Error(`工作目录不存在或无法访问: ${cwdCandidate}`)
+        throw new Error(
+          `The working directory does not exist or cannot be accessed: ${cwdCandidate}`
+        )
       }
       resolvedCwd = cwdCandidate
     }
@@ -94,9 +99,9 @@ export async function executeCommandToolHandler(
       stderr
     }
 
-    const successMessage = `命令执行成功 (exit 0)\n命令: ${trimmedCommand}\n工作目录: ${resolvedCwd}${
+    const successMessage = `The command executed successfully. (exit 0)\nCommand: ${trimmedCommand}\nWorking directory: ${resolvedCwd}${
       execOptions.shell ? `\nShell: ${execOptions.shell}` : ''
-    }\n\nstdout:\n${stdout || '(空)'}\n\nstderr:\n${stderr || '(空)'}`
+    }\n\nstdout:\n${stdout || '(empty)'}\n\nstderr:\n${stderr || '(empty)'}`
 
     return {
       toolCallId,
@@ -123,7 +128,7 @@ export async function executeCommandToolHandler(
     const errorMessage =
       execError?.message ?? (error instanceof Error ? error.message : String(error))
     const exitInfo =
-      exitCode !== null ? `exit ${exitCode}` : signal ? `signal ${signal}` : '未知退出状态'
+      exitCode !== null ? `exit ${exitCode}` : signal ? `signal ${signal}` : 'unknown exit status'
 
     const metadata = {
       command: typeof args?.command === 'string' ? args.command.trim() : '',
@@ -148,7 +153,7 @@ export async function executeCommandToolHandler(
       error: errorMessage
     }
 
-    const failureMessage = `命令执行失败 (${exitInfo})\n命令: ${metadata.command}\n工作目录: ${metadata.cwd}\n\nstdout:\n${stdout || '(空)'}\n\nstderr:\n${stderr || '(空)'}\n\n错误信息: ${errorMessage}`
+    const failureMessage = `Command execution failed (${exitInfo})\nCommand: ${metadata.command}\nWorking directory: ${metadata.cwd}\n\nstdout:\n${stdout || '(empty)'}\n\nstderr:\n${stderr || '(empty)'}\n\nerror message: ${errorMessage}`
 
     return {
       toolCallId,

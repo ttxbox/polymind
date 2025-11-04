@@ -4,17 +4,17 @@ import { BuiltInToolDefinition, BuiltInToolResponse, buildRawData } from './base
 
 export const listFilesTool: BuiltInToolDefinition = {
   name: 'list_files',
-  description: '列出指定目录中的文件和目录',
+  description: 'List files and directories in the specified directory',
   parameters: {
     type: 'object',
     properties: {
       directory_path: {
         type: 'string',
-        description: '要列出内容的目录路径'
+        description: 'Directory path to list content'
       },
       recursive: {
         type: 'boolean',
-        description: '是否递归列出子目录',
+        description: 'Whether to recursively list subdirectories',
         default: false
       }
     },
@@ -30,7 +30,7 @@ export async function executeListFilesTool(
     const { directory_path, recursive = false } = args
 
     if (!directory_path) {
-      throw new Error('目录路径不能为空')
+      throw new Error('The directory path cannot be empty')
     }
 
     const resolvedPath = path.isAbsolute(directory_path)
@@ -40,12 +40,12 @@ export async function executeListFilesTool(
     try {
       await fs.access(resolvedPath)
     } catch {
-      throw new Error(`目录不存在: ${resolvedPath}`)
+      throw new Error(`Directory does not exist: ${resolvedPath}`)
     }
 
     const stats = await fs.stat(resolvedPath)
     if (!stats.isDirectory()) {
-      throw new Error(`路径指向的是文件而不是目录: ${resolvedPath}`)
+      throw new Error(`The path points to a file, not a directory: ${resolvedPath}`)
     }
 
     interface FileItemInfo {
@@ -95,7 +95,7 @@ export async function executeListFilesTool(
       totalItems: files.length,
       items: files
     }
-    const successContent = `目录内容列出成功:\n路径: ${resolvedPath}\n递归: ${recursive}\n\n找到 ${files.length} 个项目:\n${files
+    const successContent = `Directory contents listed successfully:\nPath: ${resolvedPath}\nRecursive: ${recursive}\n\nItems found ${files.length}:\n${files
       .map(
         (item) =>
           `- ${item.type === 'directory' ? '📁' : '📄'} ${item.name} (${item.type}, ${item.size} bytes)`
@@ -111,7 +111,7 @@ export async function executeListFilesTool(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    const failureMessage = `列出文件失败: ${errorMessage}`
+    const failureMessage = `Listing file failures: ${errorMessage}`
     const metadata = { error: errorMessage }
     return {
       toolCallId,

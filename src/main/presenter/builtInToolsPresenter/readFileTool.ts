@@ -4,17 +4,17 @@ import { BuiltInToolDefinition, BuiltInToolResponse, buildRawData } from './base
 
 export const readFileTool: BuiltInToolDefinition = {
   name: 'read_file',
-  description: '读取指定路径的文件内容',
+  description: 'Read the contents of a file at a specified path',
   parameters: {
     type: 'object',
     properties: {
       file_path: {
         type: 'string',
-        description: '要读取的文件路径，可以是绝对路径或相对路径'
+        description: 'The path to the file to read, either absolute or relative'
       },
       encoding: {
         type: 'string',
-        description: '文件编码格式，默认为 utf-8',
+        description: 'File encoding format, default utf-8',
         enum: ['utf-8', 'base64', 'hex'],
         default: 'utf-8'
       }
@@ -31,7 +31,7 @@ export async function executeReadFileTool(
     const { file_path, encoding = 'utf-8' } = args
 
     if (!file_path) {
-      throw new Error('文件路径不能为空')
+      throw new Error('The file path cannot be empty')
     }
 
     const resolvedPath = path.isAbsolute(file_path)
@@ -41,12 +41,12 @@ export async function executeReadFileTool(
     try {
       await fs.access(resolvedPath)
     } catch {
-      throw new Error(`文件不存在: ${resolvedPath}`)
+      throw new Error(`File does not exist: ${resolvedPath}`)
     }
 
     const stats = await fs.stat(resolvedPath)
     if (stats.isDirectory()) {
-      throw new Error(`路径指向的是目录而不是文件: ${resolvedPath}`)
+      throw new Error(`The path points to a directory rather than a file.: ${resolvedPath}`)
     }
 
     let content: string
@@ -67,7 +67,7 @@ export async function executeReadFileTool(
       encoding
     }
 
-    const successMessage = `文件读取成功:\n路径: ${fileInfo.path}\n大小: ${fileInfo.size} bytes\n修改时间: ${fileInfo.modified}\n编码: ${fileInfo.encoding}\n\n文件内容:\n${content}`
+    const successMessage = `The file has been read successfully.:\nPath: ${fileInfo.path}\nSize: ${fileInfo.size} bytes\nModification-time: ${fileInfo.modified}\nEncode: ${fileInfo.encoding}\n\nContent :\n${content}`
     return {
       toolCallId,
       content: successMessage,

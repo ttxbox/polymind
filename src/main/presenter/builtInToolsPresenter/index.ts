@@ -30,7 +30,7 @@ async function executeBuiltInToolInternal(
   if (def) {
     const check = validateToolArgs(def, args)
     if (!check.ok) {
-      const failureMessage = `参数校验失败: ${check.message}`
+      const failureMessage = `Parameter validation failed: ${check.message}`
       const meta = { error: check.message, tool: toolName, args }
       return {
         toolCallId,
@@ -47,7 +47,7 @@ async function executeBuiltInToolInternal(
   if (executor) {
     return await executor(resolvedArgs, toolCallId)
   }
-  const msg = `未知的内置工具: ${toolName}`
+  const msg = `Unknown built-in tool: ${toolName}`
   const metadata = { error: `Unknown built-in tool: ${toolName}` }
   return {
     toolCallId,
