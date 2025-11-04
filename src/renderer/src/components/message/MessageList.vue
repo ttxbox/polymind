@@ -265,7 +265,7 @@ const handleCopyImage = async (
       isDark: themeStore.isDark,
       version: appVersion.value,
       texts: {
-        brand: 'DeepChat',
+        brand: 'PolyMind',
         tip: t('common.watermarkTip'),
         model: modelInfo?.model_name,
         provider: modelInfo?.model_provider
