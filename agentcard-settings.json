@@ -351,6 +351,22 @@
           "supportLanguages": ["zh-CN", "en-US"],
           "enableEscalation": true
         }
+      },
+      {
+        "id": "default-agent",
+        "name": "默认助手",
+        "description": "通用AI助手",
+        "icon": "lucide:bot",
+        "category": "",
+        "installed": true,
+        "version": "1.0.0",
+        "provider": {
+          "organization": "",
+          "url": ""
+        },
+        "skills": [],
+        "mcpServers": [],
+        "config": {}
       }
     ],
     "sorting": {

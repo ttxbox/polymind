@@ -88,7 +88,14 @@ export class AgentConfHelper {
       await this.initializeDefaultAgents()
 
       const agents = this.store.get('agents') || []
-      const installedAgents = this.store.get('installedAgents') || []
+      let installedAgents = this.store.get('installedAgents') || []
+
+      // 确保默认助手始终在已安装列表中
+      const defaultAgentId = 'default-agent'
+      if (!installedAgents.includes(defaultAgentId)) {
+        installedAgents.push(defaultAgentId)
+        this.store.set('installedAgents', installedAgents)
+      }
 
       // 更新智能体的安装状态
       return agents.map((agent) => ({
@@ -212,6 +219,12 @@ export class AgentConfHelper {
    */
   async uninstallAgent(agentId: string): Promise<void> {
     try {
+      // 防止卸载默认助手
+      if (agentId === 'default-agent') {
+        console.log('Cannot uninstall default agent')
+        return
+      }
+
       const installedAgents = this.store.get('installedAgents') || []
       const filteredAgents = installedAgents.filter((id) => id !== agentId)
       this.store.set('installedAgents', filteredAgents)
