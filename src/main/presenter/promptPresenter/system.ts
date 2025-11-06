@@ -29,7 +29,7 @@ async function generatePrompt(
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools = true
+  useBuiltInTools?: boolean
 ): Promise<string> {
   const promptSections = [markdownFormattingSection()]
 
@@ -71,13 +71,13 @@ export const SYSTEM_PROMPT = async (
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools = true
+  useBuiltInTools?: boolean
 ): Promise<string> => {
   return generatePrompt(
     cwd,
     globalCustomInstructions,
     language,
     IgnoreInstructions,
-    (useBuiltInTools = useBuiltInTools)
+    useBuiltInTools
   )
 }

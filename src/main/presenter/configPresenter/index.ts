@@ -57,6 +57,7 @@ interface IAppSettings {
   customSearchEngines?: string // Custom search engines JSON string
   soundEnabled?: boolean // Whether sound effects are enabled
   copyWithCotEnabled?: boolean
+  useBuiltInTools?: boolean
   loggingEnabled?: boolean // Whether logging is enabled
   floatingButtonEnabled?: boolean // Whether floating button is enabled
   default_system_prompt?: string // Default system prompt
@@ -122,6 +123,7 @@ export class ConfigPresenter implements IConfigPresenter {
         lastSyncTime: 0,
         soundEnabled: false,
         copyWithCotEnabled: true,
+        useBuiltInTools: false,
         loggingEnabled: false,
         floatingButtonEnabled: false,
         default_system_prompt: '',
@@ -978,6 +980,15 @@ export class ConfigPresenter implements IConfigPresenter {
     eventBus.sendToRenderer(CONFIG_EVENTS.COPY_WITH_COT_CHANGED, SendTarget.ALL_WINDOWS, enabled)
   }
 
+  getUseBuiltInTools(): boolean {
+    const value = this.getSetting<boolean>('useBuiltInTools')
+    return value === undefined || value === null ? false : value
+  }
+
+  setUseBuiltInTools(enabled: boolean): void {
+    this.setSetting('useBuiltInTools', enabled)
+  }
+
   // Get floating button switch status
   getFloatingButtonEnabled(): boolean {
     const value = this.getSetting<boolean>('floatingButtonEnabled') ?? false
@@ -1252,10 +1263,9 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   private async getBuildInSystemPrompt(): Promise<string> {
-    //获取内置的系统提示词
-    return await (async () => {
-      return SYSTEM_PROMPT('', '', this.getLanguage(), '')
-    })()
+    // 获取内置的系统提示词
+    const useBuiltInTools = this.getUseBuiltInTools()
+    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInTools)
   }
 
   async getSystemPrompts(): Promise<SystemPrompt[]> {

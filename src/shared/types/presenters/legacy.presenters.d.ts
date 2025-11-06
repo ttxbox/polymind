@@ -389,6 +389,9 @@ export interface IConfigPresenter {
   // Chain of Thought copy settings
   getCopyWithCotEnabled(): boolean
   setCopyWithCotEnabled(enabled: boolean): void
+  // Built-in tools settings
+  getUseBuiltInTools(): boolean
+  setUseBuiltInTools(enabled: boolean): void
   // Floating button settings
   getFloatingButtonEnabled(): boolean
   setFloatingButtonEnabled(enabled: boolean): void
