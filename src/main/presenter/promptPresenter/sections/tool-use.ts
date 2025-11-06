@@ -6,7 +6,7 @@ export function getSharedToolUseSection(): string {
 - Tool Descriptions
 - Tool Use Guidelines
 
-Tools should be called only when necessary, only to solve direct problems, only system operations, command line execution related, other problems priority to use knowledge base or other methods to solve.
+First, try to answer directly using your knowledge. Unless it is confirmed that reliance on tools is necessary, only to solve direct problems、 system operations、 command line execution related, other problems priority to use knowledge base or other methods to solve.
 You have access to a set of tools that are executed upon the user's approval, you can use one tool per message, and will receive the result of that tool use in the user's response. You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
 
 ## Tool Use Formatting
