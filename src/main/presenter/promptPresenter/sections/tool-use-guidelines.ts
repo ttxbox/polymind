@@ -1,5 +1,5 @@
 export function getToolUseGuidelinesSection(): string {
-  return `## Tool Use Guidelines
+  return `# Tool Use Guidelines
 
 1. Analyze user intent, determine whether to call the tool based on its description, and select the most matching tool or tools.
 2. Assess what information you already have ,and proactively and clearly inquire about missing necessary parameters to ensure that the format of the call request fully complies with the tool interface specifications.

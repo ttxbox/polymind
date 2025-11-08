@@ -1,7 +1,7 @@
 export function getToolDescriptionsSection(): string {
-  return `## Tool Descriptions
+  return `# Tool Descriptions
 
-### read_file
+## read_file
 Description: Requests to read the content of a file at a specified path. 
 Use this tool when you need to inspect an existing file whose content you are unaware of, such as analyzing code, viewing a text file, or extracting information from a configuration file.
 The output content will have line numbers prefixed to each line (e.g., "1 | const x = 1"), making it easier to reference specific lines when creating diffs or discussing code. 
@@ -22,7 +22,7 @@ Example: Request to read the frontend-config.json file
 </read_file>
 </built_in_tool_call>
 
-### write_file
+## write_file
 Description: Requests to write the complete content to a file at a specified path. If the file already exists, it will be overwritten with the provided content. 
 If the file does not exist, a new file will be created. This tool automatically creates all necessary directories required to write the file.
 Parameters:
@@ -64,7 +64,7 @@ Example: Request to write to frontend-config.json
 </write_file>
 </built_in_tool_call>
 
-### list_files
+## list_files
 Description: Requests to list the names of files and subdirectories in a specified directory. 
 Use this tool when you need to understand the directory structure or confirm the existence of files. 
 By default, it only lists the current level, recursion can be enabled if necessary.
@@ -87,7 +87,7 @@ Example: Request to list the src/main directory
 </list_files>
 </built_in_tool_call>
 
-### execute_command
+## execute_command
 Description: Requests the execution of a command line instruction and returns the standard output and standard error. Use this tool only when needing to run commands related to the system itself; it cannot be used for network requests or accessing external websites. 
 That is, use it only when there is a clear need, and carefully evaluate the potential side effects of the command. You must tailor the command to the user's system and clearly explain its function. For command chaining, use the appropriate chaining syntax for the user's shell. 
 By default, it runs in the current working directory; other directories or shells can be specified as needed.
