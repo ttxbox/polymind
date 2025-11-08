@@ -340,6 +340,10 @@ export class ThreadPresenter implements IThreadPresenter {
         // 权限块保持其当前状态（granted/denied/error）
         return
       }
+      if (block.type === 'tool_call' && block.status === 'error') {
+        // 工具报错时保持状态,不设置success
+        return
+      }
       block.status = 'success'
     })
 
@@ -672,7 +676,13 @@ export class ThreadPresenter implements IThreadPresenter {
         lastBlock.status = 'granted'
         return
       }
-      if (!(lastBlock.type === 'tool_call' && lastBlock.status === 'loading')) {
+      // 两种情况不能将其标记为成功：当上一个块是一个工具调用, 状态是"正在等待结果"或者"结果报错"时
+      if (
+        !(
+          lastBlock.type === 'tool_call' &&
+          (lastBlock.status === 'loading' || lastBlock.status === 'error')
+        )
+      ) {
         lastBlock.status = 'success'
       }
     }
