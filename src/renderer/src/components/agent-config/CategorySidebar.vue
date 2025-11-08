@@ -1,5 +1,5 @@
 <template>
-  <div class="w-64 h-full bg-background border-r flex flex-col">
+  <div class="w-60 max-w-60 h-full bg-background border-r flex flex-col">
 
 
     <!-- 分类筛选 -->
@@ -8,10 +8,10 @@
         <div
           v-for="category in categories"
           :key="category.id"
-          class="flex items-center p-3 rounded-lg cursor-pointer transition-colors"
+          class="flex items-center p-2 rounded-md cursor-pointer transition-colors"
           :class="{
-            'bg-primary text-primary-foreground': activeCategory === category.id,
-            'hover:bg-accent hover:text-accent-foreground': activeCategory !== category.id
+            'bg-slate-200 dark:bg-accent': activeCategory === category.id,
+            'hover:bg-accent': activeCategory !== category.id
           }"
           @click="handleCategoryClick(category.id)"
         >

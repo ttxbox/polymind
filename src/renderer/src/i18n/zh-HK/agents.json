@@ -1,11 +1,7 @@
 {
-  "page": {
-    "title": "Agent市場",
-    "subtitle": "發現和安裝各種專業智能體"
-  },
   "categories": {
-    "title": "分類篩選",
     "all": "全部",
+    "my": "我的",
     "development": "開發",
     "productivity": "生產力",
     "analytics": "分析",
@@ -51,5 +47,82 @@
   "empty": {
     "title": "未找到智能體",
     "description": "嘗試更改搜尋條件或分類篩選"
-  }
+  },
+  "import": {
+    "button": "匯入智能體",
+    "dialog": {
+      "title": "匯入智能體",
+      "description": "輸入要匯入的智能體卡片URL",
+      "urlLabel": "智能體卡片URL",
+      "urlPlaceholder": "https://example.com/.well-known/agent-card.json",
+      "cancel": "取消",
+      "import": "匯入",
+      "importing": "正在匯入..."
+    },
+    "success": {
+      "title": "匯入成功",
+      "description": "{name} 已成功匯入"
+    },
+    "error": {
+      "title": "匯入失敗",
+      "invalidUrl": "請輸入有效的URL",
+      "invalidUrlFormat": "URL格式不正確，請使用 http:// 或 https:// 開頭的有效URL",
+      "failed": "匯入智能體失敗: {error}"
+    }
+  },
+  "create": {
+    "button": "建立智能體",
+    "dialog": {
+      "title": "建立智能體",
+      "description": "填寫智能體的基本資訊",
+      "nameLabel": "智能體名稱",
+      "namePlaceholder": "輸入智能體名稱",
+      "nameHelper": "智能體的顯示名稱",
+      "descriptionLabel": "智能體描述",
+      "descriptionPlaceholder": "輸入智能體描述",
+      "descriptionHelper": "簡要描述智能體的功能和用途",
+      "categoryLabel": "分類",
+      "categoryPlaceholder": "選擇分類",
+      "categoryHelper": "選擇智能體的分類",
+      "providerLabel": "提供商",
+      "providerNameLabel": "提供商名稱",
+      "providerPlaceholder": "輸入提供商名稱",
+      "providerHelper": "智能體的提供商或作者",
+      "providerUrlLabel": "提供商URL",
+      "providerUrlPlaceholder": "輸入提供商網站URL",
+      "providerUrlHelper": "提供商的官方網站或文件連結",
+      "mcpServersLabel": "MCP 伺服器",
+      "noMcpServers": "暫無可用的 MCP 伺服器",
+      "mcpServersHelper": "選擇該智能體可使用的 MCP 伺服器",
+      "skillsLabel": "技能設定",
+      "parseSkills": "解析技能",
+      "skillsPreview": "技能預覽",
+      "noSkills": "暫無技能",
+      "skillsHelper": "輸入JSON格式的技能設定數據",
+      "versionLabel": "版本",
+      "versionPlaceholder": "輸入版本號",
+      "versionHelper": "智能體的版本號",
+      "cancel": "取消",
+      "create": "建立",
+      "creating": "正在建立..."
+    },
+    "success": {
+      "title": "建立成功",
+      "description": "{name} 已成功建立",
+      "skillsImported": "成功解析 {count} 個技能"
+    },
+    "error": {
+      "title": "建立失敗",
+      "invalidForm": "請填寫所有必填欄位",
+      "invalidSkillsFormat": "技能數據格式不正確，請檢查JSON格式",
+      "failed": "建立智能體失敗: {error}"
+    }
+  },
+  "sidebar": {
+    "tabs": {
+      "history": "會話",
+      "agents": "智能體"
+    }
+  },
+  "installed": "已安裝"
 }
