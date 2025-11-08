@@ -7,7 +7,7 @@ import type {
   UserMessage,
   Message
 } from '@shared/chat'
-import type { CONVERSATION, CONVERSATION_SETTINGS } from '@shared/presenter'
+import type { CONVERSATION, CONVERSATION_SETTINGS, Agent } from '@shared/presenter'
 import { usePresenter } from '@/composables/usePresenter'
 import { CONVERSATION_EVENTS, DEEPLINK_EVENTS, MEETING_EVENTS } from '@/events'
 import router from '@/router'
@@ -40,6 +40,9 @@ export const useChatStore = defineStore('chat', () => {
   const generatingThreadIds = ref(new Set<string>())
   const isSidebarOpen = ref(false)
   const isMessageNavigationOpen = ref(false)
+
+  // 选中的智能体
+  const selectedAgent = ref<Agent | null>(null)
 
   // 使用Map来存储会话工作状态
   const threadsWorkingStatusMap = ref<Map<number, Map<string, WorkingStatus>>>(new Map())
@@ -1195,6 +1198,11 @@ export const useChatStore = defineStore('chat', () => {
     window.dispatchEvent(new CustomEvent('show-provider-selector'))
   }
 
+  // 设置选中的智能体
+  const setSelectedAgent = (agent: Agent | null) => {
+    selectedAgent.value = agent
+  }
+
   return {
     renameThread,
     // 状态
@@ -1205,6 +1213,7 @@ export const useChatStore = defineStore('chat', () => {
     threads,
     messagesMap,
     generatingThreadIds,
+    selectedAgent,
     // Getters
     activeThread,
     // Actions
@@ -1237,6 +1246,7 @@ export const useChatStore = defineStore('chat', () => {
     getMessages,
     getCurrentThreadMessages,
     exportThread,
-    showProviderSelector
+    showProviderSelector,
+    setSelectedAgent
   }
 })
