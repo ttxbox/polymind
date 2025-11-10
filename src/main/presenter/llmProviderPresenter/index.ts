@@ -1084,138 +1084,14 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
 
               // Check if it's a built-in tool
               if (presenter.builtInToolsPresenter.isBuiltInTool(toolCall.name)) {
-                // Handle built-in tool execution
-                yield {
-                  type: 'response',
-                  data: {
-                    eventId,
-                    tool_call: 'running',
-                    tool_call_id: toolCall.id,
-                    tool_call_name: toolCall.name,
-                    tool_call_params: toolCall.arguments,
-                    tool_call_server_name: 'Built-in Tool',
-                    tool_call_server_icons: [],
-                    tool_call_server_description: 'System built-in tool'
-                  }
-                }
+                const shouldBreakToolLoop = yield* this.handleBuiltInToolCall(
+                  toolCall,
+                  conversationMessages,
+                  abortController,
+                  eventId
+                )
 
-                try {
-                  // Execute built-in tool via presenter
-                  const toolResponse = await presenter.builtInToolsPresenter.executeBuiltInTool(
-                    toolCall.name,
-                    JSON.parse(toolCall.arguments),
-                    toolCall.id
-                  )
-
-                  if (abortController.signal.aborted) break // Check after tool call returns
-
-                  // Non-native FC: Add tool execution record to conversation history for next LLM turn.
-                  const formattedToolRecordText = `<function_call>${JSON.stringify({ function_call_record: { name: toolCall.name, arguments: toolCall.arguments, response: toolResponse.content } })}</function_call>`
-
-                  let lastAssistantMessage = conversationMessages.findLast(
-                    (m) => m.role === 'assistant'
-                  )
-
-                  if (lastAssistantMessage) {
-                    if (typeof lastAssistantMessage.content === 'string') {
-                      lastAssistantMessage.content += formattedToolRecordText + '\n'
-                    } else if (Array.isArray(lastAssistantMessage.content)) {
-                      lastAssistantMessage.content.push({
-                        type: 'text',
-                        text: formattedToolRecordText + '\n'
-                      })
-                    } else {
-                      lastAssistantMessage.content = [
-                        { type: 'text', text: formattedToolRecordText + '\n' }
-                      ]
-                    }
-                  } else {
-                    conversationMessages.push({
-                      role: 'assistant',
-                      content: [{ type: 'text', text: formattedToolRecordText + '\n' }]
-                    })
-                    lastAssistantMessage = conversationMessages[conversationMessages.length - 1]
-                  }
-
-                  const userPromptText =
-                    '以上是你刚执行的工具调用及其响应信息，已帮你插入，请仔细阅读工具响应，并继续你的回答。'
-                  conversationMessages.push({
-                    role: 'user',
-                    content: [{ type: 'text', text: userPromptText }]
-                  })
-
-                  yield {
-                    type: 'response',
-                    data: {
-                      eventId,
-                      tool_call: 'end',
-                      tool_call_id: toolCall.id,
-                      tool_call_response: toolResponse.content,
-                      tool_call_name: toolCall.name,
-                      tool_call_params: toolCall.arguments,
-                      tool_call_server_name: 'Built-in Tool',
-                      tool_call_server_icons: [],
-                      tool_call_server_description: 'System built-in tool',
-                      tool_call_response_raw: toolResponse.rawData
-                    }
-                  }
-                } catch (toolError) {
-                  if (abortController.signal.aborted) break
-
-                  console.error(
-                    `Built-in tool execution error for ${toolCall.name} (event ${eventId}):`,
-                    toolError
-                  )
-                  const errorMessage =
-                    toolError instanceof Error ? toolError.message : String(toolError)
-
-                  const formattedErrorText = `编号为 ${toolCall.id} 的工具 ${toolCall.name} 调用执行失败: ${errorMessage}`
-
-                  let lastAssistantMessage = conversationMessages.findLast(
-                    (m) => m.role === 'assistant'
-                  )
-                  if (lastAssistantMessage) {
-                    if (typeof lastAssistantMessage.content === 'string') {
-                      lastAssistantMessage.content += '\n' + formattedErrorText + '\n'
-                    } else if (Array.isArray(lastAssistantMessage.content)) {
-                      lastAssistantMessage.content.push({
-                        type: 'text',
-                        text: '\n' + formattedErrorText + '\n'
-                      })
-                    } else {
-                      lastAssistantMessage.content = [
-                        { type: 'text', text: '\n' + formattedErrorText + '\n' }
-                      ]
-                    }
-                  } else {
-                    conversationMessages.push({
-                      role: 'assistant',
-                      content: [{ type: 'text', text: formattedErrorText + '\n' }]
-                    })
-                  }
-
-                  const userPromptText =
-                    '以上是你刚调用的工具及其执行的错误信息，已帮你插入，请根据情况继续回答或重新尝试。'
-                  conversationMessages.push({
-                    role: 'user',
-                    content: [{ type: 'text', text: userPromptText }]
-                  })
-
-                  yield {
-                    type: 'response',
-                    data: {
-                      eventId,
-                      tool_call: 'error',
-                      tool_call_id: toolCall.id,
-                      tool_call_name: toolCall.name,
-                      tool_call_params: toolCall.arguments,
-                      tool_call_response: errorMessage,
-                      tool_call_server_name: 'Built-in Tool',
-                      tool_call_server_icons: [],
-                      tool_call_server_description: 'System built-in tool'
-                    }
-                  }
-                }
+                if (shouldBreakToolLoop) break
 
                 continue // Skip to next tool call since built-in tool is handled
               }
@@ -2183,6 +2059,154 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     }
 
     return { updatedContent, pendingBuffer: mergedBuffer, responses }
+  }
+
+  private async *handleBuiltInToolCall(
+    toolCall: { id: string; name: string; arguments: string },
+    conversationMessages: ChatMessage[],
+    abortController: AbortController,
+    eventId: string
+  ): AsyncGenerator<LLMAgentEvent, boolean, unknown> {
+    yield {
+      type: 'response',
+      data: {
+        eventId,
+        tool_call: 'running',
+        tool_call_id: toolCall.id,
+        tool_call_name: toolCall.name,
+        tool_call_params: toolCall.arguments,
+        tool_call_server_name: 'Built-in Tool',
+        tool_call_server_icons: [],
+        tool_call_server_description: 'System built-in tool'
+      }
+    }
+
+    try {
+      const toolResponse = await presenter.builtInToolsPresenter.executeBuiltInTool(
+        toolCall.name,
+        JSON.parse(toolCall.arguments),
+        toolCall.id
+      )
+
+      if (abortController.signal.aborted) {
+        return true
+      }
+
+      if (!toolResponse.success) {
+        const failureMessage =
+          typeof toolResponse.content === 'string'
+            ? toolResponse.content
+            : 'Built-in tool execution failed.'
+        throw new Error(failureMessage)
+      }
+
+      const formattedToolRecordText = `<function_call>${JSON.stringify({
+        function_call_record: {
+          name: toolCall.name,
+          arguments: toolCall.arguments,
+          response: toolResponse.content
+        }
+      })}</function_call>`
+
+      let lastAssistantMessage = conversationMessages.findLast((m) => m.role === 'assistant')
+
+      if (lastAssistantMessage) {
+        if (typeof lastAssistantMessage.content === 'string') {
+          lastAssistantMessage.content += formattedToolRecordText + '\n'
+        } else if (Array.isArray(lastAssistantMessage.content)) {
+          lastAssistantMessage.content.push({
+            type: 'text',
+            text: formattedToolRecordText + '\n'
+          })
+        } else {
+          lastAssistantMessage.content = [{ type: 'text', text: formattedToolRecordText + '\n' }]
+        }
+      } else {
+        conversationMessages.push({
+          role: 'assistant',
+          content: [{ type: 'text', text: formattedToolRecordText + '\n' }]
+        })
+        lastAssistantMessage = conversationMessages[conversationMessages.length - 1]
+      }
+
+      const userPromptText =
+        '以上是你刚执行的工具调用及其响应信息，已帮你插入，请仔细阅读工具响应，并继续你的回答。'
+      conversationMessages.push({
+        role: 'user',
+        content: [{ type: 'text', text: userPromptText }]
+      })
+
+      yield {
+        type: 'response',
+        data: {
+          eventId,
+          tool_call: 'end',
+          tool_call_id: toolCall.id,
+          tool_call_response: toolResponse.content,
+          tool_call_name: toolCall.name,
+          tool_call_params: toolCall.arguments,
+          tool_call_server_name: 'Built-in Tool',
+          tool_call_server_icons: [],
+          tool_call_server_description: 'System built-in tool',
+          tool_call_response_raw: toolResponse.rawData
+        }
+      }
+    } catch (toolError) {
+      if (abortController.signal.aborted) {
+        return true
+      }
+
+      console.error(
+        `Built-in tool execution error for ${toolCall.name} (event ${eventId}):`,
+        toolError
+      )
+      const errorMessage = toolError instanceof Error ? toolError.message : String(toolError)
+
+      const formattedErrorText = `编号为 ${toolCall.id} 的工具 ${toolCall.name} 调用执行失败: ${errorMessage}`
+
+      let lastAssistantMessage = conversationMessages.findLast((m) => m.role === 'assistant')
+      if (lastAssistantMessage) {
+        if (typeof lastAssistantMessage.content === 'string') {
+          lastAssistantMessage.content += '\n' + formattedErrorText + '\n'
+        } else if (Array.isArray(lastAssistantMessage.content)) {
+          lastAssistantMessage.content.push({
+            type: 'text',
+            text: '\n' + formattedErrorText + '\n'
+          })
+        } else {
+          lastAssistantMessage.content = [{ type: 'text', text: '\n' + formattedErrorText + '\n' }]
+        }
+      } else {
+        conversationMessages.push({
+          role: 'assistant',
+          content: [{ type: 'text', text: formattedErrorText + '\n' }]
+        })
+      }
+
+      const userPromptText =
+        '以上是你刚调用的工具及其执行的错误信息，已帮你插入，请根据情况继续回答或重新尝试。'
+      conversationMessages.push({
+        role: 'user',
+        content: [{ type: 'text', text: userPromptText }]
+      })
+
+      yield {
+        type: 'response',
+        data: {
+          eventId,
+          tool_call: 'error',
+          tool_call_id: toolCall.id,
+          tool_call_name: toolCall.name,
+          tool_call_params: toolCall.arguments,
+          tool_call_response: errorMessage,
+          tool_call_server_name: 'Built-in Tool',
+          tool_call_server_icons: [],
+          tool_call_server_description: 'System built-in tool'
+        }
+      }
+    }
+
+    return abortController.signal.aborted
   }
 
   private parseBuiltInToolCalls(
