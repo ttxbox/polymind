@@ -234,6 +234,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import HardBreak from '@tiptap/extension-hard-break'
 // import CodeBlock from '@tiptap/extension-code-block'
 import History from '@tiptap/extension-history'
+import { TemplatePlaceholder } from './editor/template-placeholder/TemplatePlaceholder'
 import { useMcpStore } from '@/stores/mcp'
 import { ResourceListEntry } from '@shared/presenter'
 import { searchHistory } from '@/lib/searchHistory'
@@ -282,6 +283,11 @@ const editor = new Editor({
       },
       suggestion,
       deleteTriggerWithBackspace: true
+    }),
+    TemplatePlaceholder.configure({
+      HTMLAttributes: {
+        class: 'template-placeholder'
+      }
     }),
     Placeholder.configure({
       placeholder: () => {
@@ -1418,6 +1424,11 @@ defineExpose({
       console.error('Failed to append mention:', error)
       return false
     }
+  },
+  insertTemplatePlaceholder: (placeholder: string) => {
+    // 使用自定义命令插入模板占位符
+    editor.chain().insertTemplatePlaceholder(placeholder).focus().run()
+    inputText.value = editor.getText()
   },
   restoreFocus
 })

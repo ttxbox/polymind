@@ -214,7 +214,6 @@ const flattenedThreads = computed<VirtualScrollItem[]>(() => {
 const createNewThread = async () => {
   try {
     await chatStore.createNewEmptyThread()
-    chatStore.isSidebarOpen = false
     chatStore.isMessageNavigationOpen = false
   } catch (error) {
     console.error(t('common.error.createChatFailed'), error)

@@ -105,7 +105,6 @@ import ArtifactDialog from '@/components/artifacts/ArtifactDialog.vue'
 import MessageNavigationSidebar from '@/components/MessageNavigationSidebar.vue'
 import { useRoute } from 'vue-router'
 import { useLanguageStore } from '@/stores/language'
-const ThreadsView = defineAsyncComponent(() => import('@/components/ThreadsView.vue'))
 const ChatSidebar = defineAsyncComponent(() => import('@/components/ChatSidebar.vue'))
 const TitleView = defineAsyncComponent(() => import('@/components/TitleView.vue'))
 const ChatView = defineAsyncComponent(() => import('@/components/ChatView.vue'))
