@@ -91,6 +91,7 @@ Example: Request to list the src/main directory
 Description: Requests the execution of a command line instruction and returns the standard output and standard error. Use this tool only when needing to run commands related to the system itself; it cannot be used for network requests or accessing external websites. 
 That is, use it only when there is a clear need, and carefully evaluate the potential side effects of the command. You must tailor the command to the user's system and clearly explain its function. For command chaining, use the appropriate chaining syntax for the user's shell. 
 By default, it runs in the current working directory; other directories or shells can be specified as needed.
+This tool can only be run on the local system where it is installed. When performing operations such as package installation and uninstallation, it is necessary to first determine the correct package management command.
 Parameters:
 - command: (Required) The complete command string to execute.
 - working_directory: (Optional) The directory to use when executing the command. When the path is necessary, confirm with the user.
