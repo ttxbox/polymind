@@ -6,17 +6,28 @@
     <div class="flex-none border-b">
       <div class="flex">
         <button
-          v-for="tab in tabs"
-          :key="tab.id"
+          :key="'agents'"
           :class="[
             'flex-1 px-4 py-2 text-sm font-medium transition-colors',
-            activeTab === tab.id
+            activeTab === 'agents'
               ? 'text-primary border-b-2 border-primary'
               : 'text-muted-foreground hover:text-foreground'
           ]"
-          @click="activeTab = tab.id"
+          @click="activeTab = 'agents'"
         >
-          {{ tab.name }}
+          {{ t('agents.sidebar.tabs.agents') }}
+        </button>
+        <button
+          :key="'history'"
+          :class="[
+            'flex-1 px-4 py-2 text-sm font-medium transition-colors',
+            activeTab === 'history'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
+          @click="activeTab = 'history'"
+        >
+          {{ t('agents.sidebar.tabs.history') }}
         </button>
       </div>
     </div>
@@ -43,12 +54,6 @@ import ThreadsView from './ThreadsView.vue'
 import AgentOptions from './AgentOptions.vue'
 
 const { t } = useI18n()
-
-// 标签页配置
-const tabs = [
-  { id: 'agents', name: t('agents.sidebar.tabs.agents') },
-  { id: 'history', name: t('agents.sidebar.tabs.history') }
-]
 
 // 当前激活的标签页
 const activeTab = ref('agents')
