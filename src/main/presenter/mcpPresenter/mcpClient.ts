@@ -781,10 +781,14 @@ export class McpClient {
       }
 
       // 调用工具
-      const result = (await this.client.callTool({
-        name: toolName,
-        arguments: args
-      })) as ToolCallResult
+      const result = (await this.client.callTool(
+        {
+          name: toolName,
+          arguments: args
+        },
+        undefined,
+        { timeout: 300000 }
+      )) as ToolCallResult
 
       // 成功调用后重置重启标志
       this.hasRestarted = false
