@@ -12,7 +12,7 @@
           <div class="flex gap-2">
             <a
               class="text-xs text-muted-foreground hover:text-primary flex items-center"
-              href="https://deepchat.thinkinai.xyz/"
+              href="https://gitee.com/openeuler/polymind"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -21,7 +21,7 @@
             >
             <a
               class="text-xs text-muted-foreground hover:text-primary flex items-center"
-              href="https://github.com/ThinkInAIXYZ/deepchat"
+              href="https://gitee.com/openeuler/polymind"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -30,7 +30,7 @@
             </a>
             <a
               class="text-xs text-muted-foreground hover:text-primary flex items-center"
-              href="https://github.com/ThinkInAIXYZ/deepchat/blob/dev/LICENSE"
+              href="https://gitee.com/openeuler/polymind/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
             >

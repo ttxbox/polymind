@@ -45,7 +45,7 @@
             @dragover="onTabItemDragOver(idx, $event)"
           >
             <img src="@/assets/logo.png" class="w-4 h-4 mr-2 rounded-sm" />
-            <span class="truncate">{{ tab.title ?? 'DeepChat' }}</span>
+            <span class="truncate">{{ tab.title ?? 'PolyMind' }}</span>
           </AppBarTabItem>
           <!-- 拖拽插入指示器 -->
           <div

@@ -33,7 +33,7 @@ export class TrayPresenter {
     }
 
     this.tray = new Tray(image)
-    this.tray.setToolTip('DeepChat')
+    this.tray.setToolTip('PolyMind')
 
     // 获取当前系统语言
     const locale = presenter.configPresenter.getLanguage?.() || 'zh-CN'
