@@ -13,7 +13,8 @@ import {
   MCPToolResponse,
   ChatMessage,
   ChatMessageContent,
-  LLMAgentEventData
+  LLMAgentEventData,
+  AIScriptResult
 } from '../../../shared/presenter'
 import { presenter } from '@/presenter'
 import { MessageManager } from './messageManager'
@@ -72,6 +73,114 @@ interface GeneratingMessageState {
   throttleTimeout?: NodeJS.Timeout
   lastRendererUpdateTime?: number
 }
+
+const DEFAULT_AI_SCRIPT_SYSTEM_PROMPT = `
+# 历史会话总结与 Shell 脚本生成器 / Historical Conversation Shell Script Generator
+
+## 角色定位
+你是一名专业的系统管理员和脚本开发助手，负责分析用户与助手的历史会话，识别出需要通过系统命令执行的步骤，并将这些命令整理为健壮、可执行并具备日志与错误处理的 shell 脚本。当 shell 无法实现最终目标时，你需要生成结构化的报告文档，帮助用户明确差距与可行的替代方案。
+
+## 工作流程
+1. 会话分析：阅读完整的历史会话，明确用户目标、上下文与执行限制。
+2. 命令识别：梳理需要系统命令才能完成的步骤，分析依赖关系、前置条件与潜在风险。
+3. 脚本设计：将命令编排成可复用的脚本，包含必要的变量、注释、日志与错误处理。
+4. 错误处理：为关键命令补充执行结果检测、失败兜底提示与退出策略。
+5. 结果说明：为脚本或报告补充执行方式、适用平台、前置条件与注意事项。
+
+## 必须遵循的 Shell 脚本模板
+\`\`\`bash
+#!/bin/bash
+
+# 脚本信息
+SCRIPT_NAME="auto_generated_script.sh"
+SCRIPT_VERSION="1.0"
+AUTHOR="Auto Generated"
+
+# 颜色定义（用于输出）
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+YELLOW='\\033[1;33m'
+BLUE='\\033[0;34m'
+NC='\\033[0m' # No Color
+
+# 日志函数
+log_info() {
+    echo -e "\${BLUE}[INFO]\${NC} $1"
+}
+
+log_success() {
+    echo -e "\${GREEN}[SUCCESS]\${NC} $1"
+}
+
+log_warning() {
+    echo -e "\${YELLOW}[WARNING]\${NC} $1"
+}
+
+log_error() {
+    echo -e "\${RED}[ERROR]\${NC} $1"
+}
+
+# 错误处理函数
+check_exit_code() {
+    local exit_code=$?
+    local command_name=$1
+
+    if [ $exit_code -ne 0 ]; then
+        log_error "命令 '$command_name' 执行失败，退出码: $exit_code"
+        exit $exit_code
+    else
+        log_success "命令 '$command_name' 执行成功"
+    fi
+}
+
+# 主执行函数
+main() {
+    log_info "开始执行自动生成的脚本"
+    log_info "脚本名称: $SCRIPT_NAME"
+    log_info "开始时间: $(date)"
+
+    # 在这里插入从历史会话中提取的命令
+
+    log_success "所有命令执行完成"
+    log_info "结束时间: $(date)"
+}
+
+# 执行主函数
+main "$@"
+\`\`\`
+
+生成脚本时，请在 \`main\` 函数内部替换注释，依次插入提取出的命令。必要时可以新增辅助函数或变量，脚本执行如果需要交互，请使用 \`read\` 函数读取用户输入。
+
+## 无命令场景
+- 如果历史会话中未使用 shell 命令，但可以通过 shell 达成目标，请直接生成脚本。
+- 如果 shell 无法完成目标，则必须输出结构化的报告文档，解释原因并给出可执行的替代建议。
+
+## 输出格式（务必遵守）
+始终仅返回 JSON（不要添加额外文本或代码块标记），结构如下：
+\`\`\`json
+{
+  "result_type": "shell_script" | "report",
+  "objective_summary": "概述用户的目标、上下文，总结用户的意图和需求",
+  "shell_script": {
+    "instructions": "脚本功能说明、依赖、风险提示等",
+    "script": "完整的脚本内容"
+  } | null,
+  "report": {
+    "title": "报告标题",
+    "content_markdown": "Markdown 格式的结构化报告",
+    "summary": "简短摘要"
+  } | null,
+  "notes": "根据脚本或报告的类型，填写脚本的使用说明或模型对用户需求反馈的结果总结"
+}
+\`\`\`
+
+- 当 \`result_type\` 为 \`shell_script\` 时，必须完整填写 \`shell_script\` 字段，\`report\` 必须为 null，\`notes\`字段按步骤填写脚本的使用方式，注意换行，然后就是脚本的使用限制和参数说明（如果有）
+- 当 \`result_type\` 为 \`report\` 时，必须完整填写 \`report\` 字段，\`shell_script\` 必须为 null，\`notes\`字段填写模型对用户需求反馈的结果总结。
+- \`platform\` 需要明确脚本适用的平台（如 Linux、macOS、Windows、跨平台等）。
+- 所有命令需要按执行顺序出现，并结合日志与错误检测。
+
+请严格遵守上述约束。
+`
 
 export class ThreadPresenter implements IThreadPresenter {
   private sqlitePresenter: ISQLitePresenter
@@ -229,6 +338,10 @@ export class ThreadPresenter implements IThreadPresenter {
     state.message.content.forEach((block) => {
       if (block.type === 'action' && block.action_type === 'tool_call_permission') {
         // 权限块保持其当前状态（granted/denied/error）
+        return
+      }
+      if (block.type === 'tool_call' && block.status === 'error') {
+        // 工具报错时保持状态,不设置success
         return
       }
       block.status = 'success'
@@ -563,7 +676,13 @@ export class ThreadPresenter implements IThreadPresenter {
         lastBlock.status = 'granted'
         return
       }
-      if (!(lastBlock.type === 'tool_call' && lastBlock.status === 'loading')) {
+      // 两种情况不能将其标记为成功：当上一个块是一个工具调用, 状态是"正在等待结果"或者"结果报错"时
+      if (
+        !(
+          lastBlock.type === 'tool_call' &&
+          (lastBlock.status === 'loading' || lastBlock.status === 'error')
+        )
+      ) {
         lastBlock.status = 'success'
       }
     }
@@ -3143,6 +3262,251 @@ export class ThreadPresenter implements IThreadPresenter {
    * @param format 导出格式 ('markdown' | 'html' | 'txt')
    * @returns 包含文件名和内容的对象
    */
+  async generateAiScript(
+    conversationId: string,
+    targetMessageId: string,
+    options?: { promptOverride?: string }
+  ): Promise<AIScriptResult> {
+    const conversation = await this.getConversation(conversationId)
+    if (!conversation) {
+      throw new Error('Conversation not found')
+    }
+
+    const targetMessage = await this.messageManager.getMessage(targetMessageId)
+    if (!targetMessage) {
+      throw new Error('Target message not found')
+    }
+
+    const { list: conversationMessages } = await this.getMessages(conversationId, 1, 10000)
+
+    const relevantMessages: Message[] = []
+    let foundTarget = false
+
+    for (const message of conversationMessages) {
+      if (message.status && message.status !== 'sent' && message.id !== targetMessageId) {
+        continue
+      }
+
+      const variantMatch = message.variants?.find((variant) => variant.id === targetMessageId)
+      if (variantMatch) {
+        relevantMessages.push(this.sanitizeMessageForAiScript(variantMatch))
+        foundTarget = true
+        break
+      }
+
+      relevantMessages.push(this.sanitizeMessageForAiScript(message))
+
+      if (message.id === targetMessageId) {
+        foundTarget = true
+        break
+      }
+    }
+
+    if (!foundTarget) {
+      const fallbackMessages = conversationMessages
+        .filter((msg) => !msg.status || msg.status === 'sent')
+        .filter((msg) => msg.timestamp <= targetMessage.timestamp)
+        .map((msg) => this.sanitizeMessageForAiScript(msg))
+
+      if (fallbackMessages.length > 0) {
+        relevantMessages.splice(0, relevantMessages.length, ...fallbackMessages)
+      } else {
+        relevantMessages.push(this.sanitizeMessageForAiScript(targetMessage))
+      }
+    }
+
+    const maxHistory = 60
+    const trimmedHistory =
+      relevantMessages.length > maxHistory
+        ? relevantMessages.slice(relevantMessages.length - maxHistory)
+        : relevantMessages
+
+    const transcript = this.exportToText(conversation, trimmedHistory)
+
+    const systemPrompt =
+      options?.promptOverride && options.promptOverride.trim().length > 0
+        ? options.promptOverride
+        : DEFAULT_AI_SCRIPT_SYSTEM_PROMPT
+
+    const providerId = conversation.settings.providerId
+    const modelId = conversation.settings.modelId
+
+    if (!providerId || !modelId) {
+      throw new Error('Conversation is missing provider or model configuration')
+    }
+
+    const metadataSections = [
+      `会话 ID: ${conversation.id}`,
+      `目标消息 ID: ${targetMessageId}`,
+      `会话标题: ${conversation.title}`,
+      `模型: ${modelId}`,
+      `会话创建时间: ${new Date(conversation.createdAt).toISOString()}`
+    ]
+
+    const userPrompt = [
+      '请按照系统提示，基于以下历史会话生成符合要求的输出：',
+      metadataSections.join('\n'),
+      '=== 会话记录开始 ===',
+      transcript,
+      '=== 会话记录结束 ===',
+      '请严格输出符合约束的 JSON。'
+    ].join('\n\n')
+
+    const temperature = Math.max(Math.min(conversation.settings.temperature ?? 0.2, 0.5), 0)
+    const maxTokens = Math.min(conversation.settings.maxTokens ?? 2048, 4096)
+
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: userPrompt }
+    ]
+
+    const rawResponse = await this.llmProviderPresenter.generateCompletion(
+      providerId,
+      messages,
+      modelId,
+      temperature,
+      maxTokens
+    )
+
+    return this.parseAiScriptResponse(rawResponse)
+  }
+
+  private sanitizeMessageForAiScript(message: Message): Message {
+    const sanitized: Message = { ...message }
+    if (sanitized.variants && sanitized.variants.length > 0) {
+      sanitized.variants = []
+    }
+    return sanitized
+  }
+
+  private parseAiScriptResponse(raw: string): AIScriptResult {
+    const payload = this.extractJsonPayload(raw)
+
+    try {
+      const data = JSON.parse(payload)
+      const resultType = data.result_type === 'shell_script' ? 'shell_script' : 'report'
+      const objectiveSummary =
+        typeof data.objective_summary === 'string' && data.objective_summary.trim().length > 0
+          ? data.objective_summary.trim()
+          : ''
+      const notes =
+        typeof data.notes === 'string' && data.notes.trim().length > 0
+          ? data.notes.trim()
+          : undefined
+      console.log('data:', JSON.stringify(data, null, 2))
+      if (resultType === 'shell_script') {
+        const shell = data.shell_script ?? {}
+        const script =
+          typeof shell.script === 'string' && shell.script.trim().length > 0
+            ? shell.script.trim()
+            : ''
+        if (!script) {
+          return this.buildFallbackAiScriptReport(
+            raw,
+            '模型返回的 JSON 缺少 shell_script.script 字段。',
+            objectiveSummary,
+            notes
+          )
+        }
+
+        const instructions = typeof shell.instructions === 'string' ? shell.instructions.trim() : ''
+
+        return {
+          resultType: 'shell_script',
+          objectiveSummary: objectiveSummary || 'Shell 脚本生成结果',
+          shellScript: {
+            instructions,
+            script
+          },
+          notes,
+          rawResponse: raw
+        }
+      }
+
+      const report = data.report ?? {}
+      const title =
+        typeof report.title === 'string' && report.title.trim().length > 0
+          ? report.title.trim()
+          : '历史会话分析报告'
+      const contentMarkdown =
+        typeof report.content_markdown === 'string' && report.content_markdown.trim().length > 0
+          ? report.content_markdown
+          : `\`\`\`\n${raw.trim()}\n\`\`\``
+      const summary =
+        typeof report.summary === 'string' && report.summary.trim().length > 0
+          ? report.summary.trim()
+          : objectiveSummary
+
+      return {
+        resultType: 'report',
+        objectiveSummary: objectiveSummary || '会话分析报告',
+        report: {
+          title,
+          contentMarkdown,
+          summary: summary || ''
+        },
+        notes,
+        rawResponse: raw
+      }
+    } catch (error) {
+      console.warn('Failed to parse AI Script response:', error)
+      return this.buildFallbackAiScriptReport(
+        raw,
+        '模型响应不是有效的 JSON。',
+        undefined,
+        undefined
+      )
+    }
+  }
+
+  private extractJsonPayload(raw: string): string {
+    if (!raw) {
+      return '{}'
+    }
+
+    const fencedJson = raw.match(/```json\s*([\s\S]*?)```/i)
+    if (fencedJson) {
+      return fencedJson[1].trim()
+    }
+
+    const fencedBlock = raw.match(/```[\w-]*\s*([\s\S]*?)```/)
+    if (fencedBlock) {
+      return fencedBlock[1].trim()
+    }
+
+    const firstBrace = raw.indexOf('{')
+    const lastBrace = raw.lastIndexOf('}')
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      return raw.slice(firstBrace, lastBrace + 1).trim()
+    }
+
+    return raw.trim()
+  }
+
+  private buildFallbackAiScriptReport(
+    raw: string,
+    reason: string,
+    objectiveSummary?: string,
+    notes?: string
+  ): AIScriptResult {
+    const mergedNotes = [reason, notes]
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      .join('；')
+
+    return {
+      resultType: 'report',
+      objectiveSummary:
+        objectiveSummary && objectiveSummary.trim().length > 0 ? objectiveSummary : reason,
+      report: {
+        title: 'AI Script Result',
+        contentMarkdown: `\`\`\`\n${raw.trim()}\n\`\`\``,
+        summary: reason
+      },
+      notes: mergedNotes.length > 0 ? mergedNotes : undefined,
+      rawResponse: raw
+    }
+  }
+
   async exportConversation(
     conversationId: string,
     format: 'markdown' | 'html' | 'txt' = 'markdown'

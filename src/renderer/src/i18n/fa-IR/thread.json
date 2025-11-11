@@ -21,12 +21,29 @@
     "retry": "تولید دوباره",
     "fork": "ساخت شاخه",
     "edit": "ویرایش پیام",
-    "delete": "پاک کردن پیام"
+    "delete": "پاک کردن پیام",
+    "AIScript": "جلسه اسکریپت‌شدهٔ AI",
+    "AIScriptDescription": "گفتگو را تحلیل کنید و یک شِل اسکریپت پایدار یا گزارش ساختارمند تولید کنید.",
+    "AIScriptLoading": "در حال تولید AI Script...",
+    "AIScriptError": "تولید AI Script با خطا مواجه شد",
+    "AIScriptObjective": "خلاصهٔ نشست",
+    "AIScriptPlatformLabel": "پلتفرم هدف",
+    "AIScriptCopyScript": "کپی اسکریپت",
+    "AIScriptInstructions": "توضیحات اسکریپت",
+    "AIScriptScriptLabel": "محتوای شِل اسکریپت",
+    "AIScriptReportLabel": "گزارش ساختاریافته",
+    "AIScriptCopyReport": "کپی گزارش",
+    "AIScriptNotes": "یادداشت‌ها"
   },
   "message": {
     "toolbar": {
       "save": "ذخیره"
     }
+  },
+  "aiScript": {
+    "description": "در این بخش تحلیل AI Script نمایش داده می‌شود و می‌توانید خروجی را کپی یا ذخیره کنید.",
+    "sourceMessage": "پیام LLM",
+    "emptyHint": "یک پاسخ دستیار را انتخاب کرده و دکمه «AI Script» را بزنید تا نتیجه اینجا نمایش داده شود."
   },
   "export": {
     "failed": "صادرات شکست خورد",

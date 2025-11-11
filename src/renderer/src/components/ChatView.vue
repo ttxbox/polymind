@@ -18,16 +18,21 @@
       />
     </div>
   </div>
+
+  <AiScriptPanel />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 import MessageList from './message/MessageList.vue'
 import ChatInput from './ChatInput.vue'
+import AiScriptPanel from './AiScriptPanel.vue'
 import { useRoute } from 'vue-router'
 import { UserMessageContent } from '@shared/chat'
 import { STREAM_EVENTS } from '@/events'
 import { useSettingsStore } from '@/stores/settings'
+import { useChatStore } from '@/stores/chat'
+import { useAiScriptStore } from '@/stores/aiScript'
 
 const route = useRoute()
 const settingsStore = useSettingsStore()
@@ -35,9 +40,8 @@ const settingsStore = useSettingsStore()
 const messageList = ref()
 const chatInput = ref()
 
-import { useChatStore } from '@/stores/chat'
-
 const chatStore = useChatStore()
+const aiScriptStore = useAiScriptStore()
 
 const scrollToBottom = (smooth = true) => {
   messageList.value?.scrollToBottom(smooth)
@@ -107,6 +111,13 @@ watch(
       })
       chatStore.setActiveThread(threadId)
     }
+  }
+)
+
+watch(
+  () => chatStore.getActiveThreadId(),
+  () => {
+    aiScriptStore.close()
   }
 )
 

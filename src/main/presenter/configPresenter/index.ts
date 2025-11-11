@@ -35,7 +35,7 @@ import { AgentConfHelper } from './agentConfHelper'
 import { SYSTEM_PROMPT } from '../promptPresenter/system'
 
 // Default system prompt constant
-const DEFAULT_SYSTEM_PROMPT = `You are DeepChat, a highly capable AI assistant. Your goal is to fully complete the user’s requested task before handing the conversation back to them. Keep working autonomously until the task is fully resolved.
+const DEFAULT_SYSTEM_PROMPT = `You are PolyMind, a highly capable AI assistant. Your goal is to fully complete the user's requested task before handing the conversation back to them. Keep working autonomously until the task is fully resolved.
 Be thorough in gathering information. Before replying, make sure you have all the details necessary to provide a complete solution. Use additional tools or ask clarifying questions when needed, but if you can find the answer on your own, avoid asking the user for help.
 When using tools, briefly describe your intended steps first—for example, which tool you’ll use and for what purpose.
 Adhere to this in all languages.Always respond in the same language as the user's query.`
@@ -59,6 +59,7 @@ interface IAppSettings {
   customSearchEngines?: string // Custom search engines JSON string
   soundEnabled?: boolean // Whether sound effects are enabled
   copyWithCotEnabled?: boolean
+  useBuiltInTools?: boolean
   loggingEnabled?: boolean // Whether logging is enabled
   floatingButtonEnabled?: boolean // Whether floating button is enabled
   default_system_prompt?: string // Default system prompt
@@ -125,6 +126,7 @@ export class ConfigPresenter implements IConfigPresenter {
         lastSyncTime: 0,
         soundEnabled: false,
         copyWithCotEnabled: true,
+        useBuiltInTools: false,
         loggingEnabled: false,
         floatingButtonEnabled: false,
         default_system_prompt: '',
@@ -150,7 +152,7 @@ export class ConfigPresenter implements IConfigPresenter {
         prompts: [
           {
             id: 'default',
-            name: 'DeepChat',
+            name: 'PolyMind',
             content: DEFAULT_SYSTEM_PROMPT,
             isDefault: true,
             createdAt: Date.now(),
@@ -327,7 +329,7 @@ export class ConfigPresenter implements IConfigPresenter {
           } else {
             prompts.push({
               id: 'default',
-              name: 'DeepChat',
+              name: 'PolyMind',
               content: legacyDefault,
               isDefault: true,
               createdAt: now,
@@ -984,6 +986,15 @@ export class ConfigPresenter implements IConfigPresenter {
     eventBus.sendToRenderer(CONFIG_EVENTS.COPY_WITH_COT_CHANGED, SendTarget.ALL_WINDOWS, enabled)
   }
 
+  getUseBuiltInTools(): boolean {
+    const value = this.getSetting<boolean>('useBuiltInTools')
+    return value === undefined || value === null ? false : value
+  }
+
+  setUseBuiltInTools(enabled: boolean): void {
+    this.setSetting('useBuiltInTools', enabled)
+  }
+
   // Get floating button switch status
   getFloatingButtonEnabled(): boolean {
     const value = this.getSetting<boolean>('floatingButtonEnabled') ?? false
@@ -1258,10 +1269,9 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   private async getBuildInSystemPrompt(): Promise<string> {
-    //获取内置的系统提示词
-    return await (async () => {
-      return SYSTEM_PROMPT('', '', this.getLanguage(), '')
-    })()
+    // 获取内置的系统提示词
+    const useBuiltInTools = this.getUseBuiltInTools()
+    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInTools)
   }
 
   async getSystemPrompts(): Promise<SystemPrompt[]> {

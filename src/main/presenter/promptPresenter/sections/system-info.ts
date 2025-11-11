@@ -1,16 +1,13 @@
 import os from 'os'
 import osName from 'os-name'
 
-export function getSystemInfoSection(cwd: string): string {
-  let details = `====
-f
+export function getSystemInfoSection(): string {
+  return `====
+
 SYSTEM INFORMATION
 
 Operating System: ${osName()}
 System Arch: ${os.arch()}
 Home Directory: ${os.homedir()}
-Current Workspace Directory: ${cwd}
-
 `
-  return details
 }

@@ -158,6 +158,20 @@
             <Tooltip>
               <TooltipTrigger as-child>
                 <Button
+                  v-show="isAssistant && !loading && !isInGeneratingThread"
+                  variant="ghost"
+                  size="icon"
+                  class="w-4 h-4 text-muted-foreground hover:text-primary hover:bg-transparent"
+                  @click="emit('aiScript')"
+                >
+                  <Icon icon="lucide:file-code" class="w-3 h-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{{ t('thread.toolbar.AIScript') }}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
                   v-show="!isAssistant && !isEditMode"
                   variant="ghost"
                   size="icon"
@@ -293,6 +307,7 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'copy'): void
   (e: 'copyImage'): void
+  (e: 'aiScript'): void
   (e: 'prev'): void
   (e: 'next'): void
   (e: 'edit'): void

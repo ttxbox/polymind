@@ -5,6 +5,7 @@ import { ShowResponse } from 'ollama'
 import { ShortcutKeySetting } from '@/presenter/configPresenter/shortcutKeySettings'
 import { ModelType } from '@shared/model'
 import { ProviderChange, ProviderBatchUpdate } from './provider-operations'
+import { A2AServerConfig } from '@/presenter/A2APresenter/serverManager'
 
 export type SQLITE_MESSAGE = {
   id: string
@@ -388,6 +389,9 @@ export interface IConfigPresenter {
   // Chain of Thought copy settings
   getCopyWithCotEnabled(): boolean
   setCopyWithCotEnabled(enabled: boolean): void
+  // Built-in tools settings
+  getUseBuiltInTools(): boolean
+  setUseBuiltInTools(enabled: boolean): void
   // Floating button settings
   getFloatingButtonEnabled(): boolean
   setFloatingButtonEnabled(enabled: boolean): void
@@ -701,6 +705,23 @@ export interface ILlmProviderPresenter {
   ): Promise<string>
 }
 
+export interface IA2APresenter {
+  // Server management
+  getA2AServers(): Promise<Record<string, A2AServerConfig>>
+  addA2AServer(name: string, config: A2AServerConfig): Promise<boolean>
+  removeA2AServer(name: string): Promise<void>
+
+  // Server lifecycle
+  isServerRunning(name: string): Promise<boolean>
+
+  // Task operations
+  // sendMessage(serverName: string, params: MessageSendParams): Promise<Task>
+  cancelTask(serverName: string, params: TaskIdParams): Promise<void>
+
+  // Agent information
+  getAgentCard(serverName: string): Promise<AgentCard>
+}
+
 export type CONVERSATION_SETTINGS = {
   systemPrompt: string
   temperature: number
@@ -727,6 +748,22 @@ export type CONVERSATION = {
   is_new?: number
   artifacts?: number
   is_pinned?: number
+}
+
+export type AIScriptResult = {
+  resultType: 'shell_script' | 'report'
+  objectiveSummary: string
+  shellScript?: {
+    script: string
+    instructions?: string
+  }
+  report?: {
+    title: string
+    contentMarkdown: string
+    summary?: string
+  }
+  notes?: string
+  rawResponse?: string
 }
 
 export interface IThreadPresenter {
@@ -810,6 +847,11 @@ export interface IThreadPresenter {
   continueStreamCompletion(conversationId: string, queryMsgId: string): Promise<AssistantMessage>
   toggleConversationPinned(conversationId: string, isPinned: boolean): Promise<void>
   findTabForConversation(conversationId: string): Promise<number | null>
+  generateAiScript(
+    conversationId: string,
+    targetMessageId: string,
+    options?: { promptOverride?: string }
+  ): Promise<AIScriptResult>
 
   // Permission handling
   handlePermissionResponse(
@@ -1071,6 +1113,40 @@ export interface ProgressResponse {
   digest?: string
   total?: number
   completed?: number
+}
+
+//
+export interface IBuiltInToolsPresenter {
+  /**
+   * 获取所有内置工具的定义
+   */
+  getBuiltInTools(): Promise<Tool[]>
+
+  /**
+   * 获取工具的描述信息
+   * @param toolName 工具名称
+   */
+  getToolDescription(toolName: string): Promise<string | null>
+
+  /**
+   * 检查给定名称是否为内置工具
+   */
+  isBuiltInTool(toolName: string): boolean
+
+  /**
+   * 直接执行内置工具（返回底层执行结果，包含 rawData）
+   */
+  executeBuiltInTool(
+    toolName: string,
+    args: any,
+    toolCallId: string
+  ): Promise<{
+    toolCallId: string
+    content: string
+    success: boolean
+    metadata?: Record<string, any>
+    rawData: MCPToolResponse
+  }>
 }
 
 // MCP related type definitions

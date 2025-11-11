@@ -21,12 +21,29 @@
     "retry": "Regenerate",
     "fork": "Branch to New Chat",
     "edit": "Edit message",
-    "delete": "Delete message"
+    "delete": "Delete message",
+    "AIScript": "AI Scripted Session",
+    "AIScriptDescription": "Analyze the conversation and generate a robust shell script or a structured report.",
+    "AIScriptLoading": "Generating AI Script...",
+    "AIScriptError": "Failed to generate AI Script",
+    "AIScriptObjective": "Session Summary",
+    "AIScriptPlatformLabel": "Target platform",
+    "AIScriptCopyScript": "Copy script",
+    "AIScriptInstructions": "Script Instructions",
+    "AIScriptScriptLabel": "Shell script",
+    "AIScriptReportLabel": "Report",
+    "AIScriptCopyReport": "Copy report",
+    "AIScriptNotes": "Notes"
   },
   "message": {
     "toolbar": {
       "save": "Save"
     }
+  },
+  "aiScript": {
+    "description": "Review AI Script analysis and copy or save generated outputs.",
+    "sourceMessage": "LLM Message",
+    "emptyHint": "Select an assistant reply and click “AI Script” to generate a report here."
   },
   "export": {
     "failed": "Export failed",

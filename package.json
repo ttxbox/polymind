@@ -1,7 +1,7 @@
 {
-  "name": "DeepChat",
+  "name": "PolyMind",
   "version": "0.3.5",
-  "description": "DeepChat，一个简单易用的AI客户端",
+  "description": "PolyMind，一个简单易用的AI客户端",
   "main": "./out/main/index.js",
   "author": "ThinkInAIXYZ",
   "type": "module",
@@ -55,6 +55,7 @@
     "cleanRuntime": "rm -rf runtime/uv runtime/bun runtime/node"
   },
   "dependencies": {
+    "@a2a-js/sdk": "^0.3.4",
     "@anthropic-ai/sdk": "^0.53.0",
     "@aws-sdk/client-bedrock": "^3.879.0",
     "@aws-sdk/client-bedrock-runtime": "^3.879.0",
@@ -92,6 +93,8 @@
     "tokenx": "^0.4.1",
     "turndown": "^7.2.1",
     "undici": "^7.15.0",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xml2js": "^0.6.2",
     "zod": "^3.25.76"
@@ -121,6 +124,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^22.14.1",
+    "@types/ws": "^8.18.1",
     "@types/xlsx": "^0.0.35",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.2.4",
