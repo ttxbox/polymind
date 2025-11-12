@@ -22,6 +22,7 @@ files:
   - '!**/{LICENSE,LICENSE.txt,*.LICENSE.txt,NOTICE.txt,README.md,CHANGELOG.md,CONTRIBUTING.md,CONTRIBUTING.zh.md,README.zh.md,README.jp.md}'
   - '!**/{.DS_Store,Thumbs.db}'
   - '!*.md'
+  - 'agentcard-settings.json'
 
 asarUnpack:
   - '**/node_modules/sharp/**/*'

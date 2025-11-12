@@ -31,25 +31,107 @@ export class AgentConfHelper {
    */
   private async loadDefaultAgents(): Promise<Agent[]> {
     try {
-      // 从项目根目录加载配置文件
-      const configPath = path.join(process.cwd(), 'agentcard-settings.json')
-      console.log('Loading agents from config path:', configPath)
+      // 尝试从多个路径加载配置文件
+      const possiblePaths = [
+        // 开发环境：项目根目录
+        path.join(process.cwd(), 'agentcard-settings.json'),
+        // 打包环境：应用资源目录
+        path.join(process.resourcesPath, 'agentcard-settings.json'),
+        // 打包环境：应用根目录
+        path.join(process.cwd(), 'agentcard-settings.json'),
+        // 备用路径：当前目录
+        path.join(__dirname, '../../../agentcard-settings.json')
+      ]
 
-      if (fs.existsSync(configPath)) {
+      let configPath = ''
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          configPath = possiblePath
+          console.log('Found agent config at:', configPath)
+          break
+        }
+      }
+
+      if (configPath) {
         const configData = fs.readFileSync(configPath, 'utf-8')
         const config = JSON.parse(configData)
         const defaultAgents = config.settings?.defaultAgents || []
         console.log('Loaded default agents from config:', defaultAgents.length)
         return defaultAgents
       } else {
-        console.warn('Config file not found:', configPath)
+        console.warn('Agent config file not found in any of the expected locations')
+        // 如果配置文件不存在，返回硬编码的默认agent
+        return this.getHardcodedDefaultAgents()
       }
     } catch (error) {
       console.error('Failed to load default agents from config:', error)
+      // 如果加载失败，返回硬编码的默认agent
+      return this.getHardcodedDefaultAgents()
     }
+  }
 
-    // 如果配置文件不存在或加载失败，返回空数组
-    return []
+  /**
+   * 获取硬编码的默认智能体数据（作为备用方案）
+   */
+  private getHardcodedDefaultAgents(): Agent[] {
+    console.log('Using hardcoded default agents')
+    return [
+      {
+        id: 'default-agent',
+        name: '默认助手',
+        description: '通用AI助手',
+        icon: 'lucide:bot',
+        category: '',
+        installed: true,
+        version: '1.0.0',
+        provider: {
+          organization: '',
+          url: ''
+        },
+        skills: [],
+        mcpServers: [],
+        config: {}
+      },
+      {
+        id: 'code-assistant',
+        name: '代码助手',
+        description: '智能代码生成和审查助手',
+        icon: 'lucide:code',
+        category: 'development',
+        installed: false,
+        version: '1.0.0',
+        provider: {
+          organization: 'DeepChat Team',
+          url: 'https://deepchat.ai'
+        },
+        skills: [
+          {
+            id: 'code-generation',
+            name: '代码生成',
+            description: '根据需求生成高质量的代码',
+            tags: ['development', 'coding'],
+            examples: ['生成一个React组件', '创建Python函数'],
+            imputModes: ['text'],
+            ouputModes: ['code']
+          },
+          {
+            id: 'code-review',
+            name: '代码审查',
+            description: '分析和改进代码质量',
+            tags: ['development', 'quality'],
+            examples: ['检查代码风格', '识别潜在问题'],
+            imputModes: ['code'],
+            ouputModes: ['suggestions']
+          }
+        ],
+        mcpServers: ['Artifacts', 'powerpack', 'buildInFileSystem'],
+        config: {
+          languageSupport: ['javascript', 'typescript', 'python', 'java'],
+          maxTokens: 4096,
+          temperature: 0.7
+        }
+      }
+    ]
   }
 
   /**
