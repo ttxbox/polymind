@@ -1222,6 +1222,12 @@ export class OpenAICompatibleProvider extends BaseLLMProvider {
             if (parsedCall.function_call && typeof parsedCall.function_call === 'object') {
               functionName = parsedCall.function_call.name
               functionArgs = parsedCall.function_call.arguments
+            } else if (
+              parsedCall.function_call_record &&
+              typeof parsedCall.function_call_record === 'object'
+            ) {
+              functionName = parsedCall.function_call_record.name
+              functionArgs = parsedCall.function_call_record.arguments
             } else if (parsedCall.name && parsedCall.arguments !== undefined) {
               functionName = parsedCall.name
               functionArgs = parsedCall.arguments
