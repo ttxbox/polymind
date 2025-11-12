@@ -8,7 +8,7 @@ function isLinux(targets) {
 
 async function afterPack({ targets, appOutDir }) {
   if (!isLinux(targets)) return
-  const appName = 'deepchat'
+  const appName = 'polymind'
   const scriptPath = path.join(appOutDir, appName)
   const script = `#!/bin/bash\n"\${BASH_SOURCE%/*}"/${appName}.bin --no-sandbox "$@"`
   await fs.rename(scriptPath, `${scriptPath}.bin`)

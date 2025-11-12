@@ -105,6 +105,14 @@ export const MCP_EVENTS = {
   INITIALIZED: 'mcp:initialized' // 新增：MCP初始化完成事件
 }
 
+// 智能体相关事件
+export const AGENT_EVENTS = {
+  AGENTS_UPDATED: 'agent:agents-updated', // 智能体列表更新
+  AGENT_INSTALLED: 'agent:agent-installed', // 智能体安装
+  AGENT_UNINSTALLED: 'agent:agent-uninstalled', // 智能体卸载
+  AGENTS_IMPORTED: 'agent:agents-imported' // 智能体数据导入
+}
+
 // 同步相关事件
 export const SYNC_EVENTS = {
   BACKUP_STARTED: 'sync:backup-started',

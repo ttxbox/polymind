@@ -16,6 +16,24 @@
       <h1 class="text-2xl font-bold px-8 pt-4">{{ t('newThread.greeting') }}</h1>
       <h3 class="text-lg px-8 pb-2">{{ t('newThread.prompt') }}</h3>
       <div class="h-12"></div>
+      
+      <!-- 智能体技能按钮 -->
+      <div v-if="selectedAgent && selectedAgent.skills && selectedAgent.skills.length > 0" class="w-full max-w-2xl px-4 mb-4">
+        <div class="flex flex-wrap gap-2 justify-center">
+          <Button
+            v-for="skill in selectedAgent.skills"
+            :key="skill.id"
+            variant="outline"
+            size="sm"
+            class="text-xs px-3 py-1 h-7"
+            @click="handleSkillClick(skill)"
+          >
+            <Icon :icon="selectedAgent.icon || 'lucide:bot'" class="w-3 h-3 mr-1" />
+            {{ skill.name }}
+          </Button>
+        </div>
+      </div>
+      
       <ChatInput
         ref="chatInputRef"
         key="newThread"
@@ -145,6 +163,9 @@ interface PreferredModel {
 const { t } = useI18n()
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
+
+// 使用全局状态中的选中智能体
+const selectedAgent = computed(() => chatStore.selectedAgent)
 const activeModel = ref({
   name: '',
   id: '',
@@ -419,6 +440,87 @@ watch(
   },
   { immediate: true }
 )
+
+// 定义模板部分的类型
+interface TemplateTextPart {
+  type: 'text'
+  content: string
+}
+
+interface TemplatePlaceholderPart {
+  type: 'placeholder'
+  placeholder: string
+}
+
+type TemplatePart = TemplateTextPart | TemplatePlaceholderPart
+
+// 解析模板字符串并构建模板内容
+const parseTemplate = (template: string): TemplatePart[] => {
+  const parts: TemplatePart[] = []
+  let currentIndex = 0
+  const regex = /\[([A-Z_]+)\]/g
+  let match
+  
+  while ((match = regex.exec(template)) !== null) {
+    // 添加匹配前的文本
+    if (match.index > currentIndex) {
+      parts.push({
+        type: 'text',
+        content: template.slice(currentIndex, match.index)
+      })
+    }
+    
+    // 添加占位符
+    parts.push({
+      type: 'placeholder',
+      placeholder: match[0]
+    })
+    
+    currentIndex = match.index + match[0].length
+  }
+  
+  // 添加剩余的文本
+  if (currentIndex < template.length) {
+    parts.push({
+      type: 'text',
+      content: template.slice(currentIndex)
+    })
+  }
+  
+  return parts
+}
+
+// 处理技能按钮点击
+const handleSkillClick = async (skill: any) => {
+  console.log('Skill clicked:', skill.name)
+  
+  // 如果技能有examples，将第一个示例添加到输入框
+  if (skill.examples && skill.examples.length > 0 && chatInputRef.value) {
+    const example = skill.examples[0] // 使用第一个示例
+    
+    // 清空输入框
+    chatInputRef.value.clearContent()
+    
+    // 解析模板
+    const templateParts = parseTemplate(example)
+    
+    // 插入模板内容，添加延迟确保光标位置正确
+    for (const part of templateParts) {
+      if (part.type === 'text' && part.content) {
+        chatInputRef.value.appendText(part.content)
+      } else if (part.type === 'placeholder' && part.placeholder) {
+        chatInputRef.value.insertTemplatePlaceholder(part.placeholder)
+      }
+      // 添加小延迟确保光标位置正确
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  } else {
+    console.log('Skill has no examples or input box is not initialized')
+  }
+  
+  // 这里可以添加技能点击后的逻辑，比如发送特定的消息
+  // 例如：chatStore.sendMessage({ text: `使用技能: ${skill.name}`, files: [], links: [], think: false, search: false })
+}
 
 const handleSend = async (content: UserMessageContent) => {
   const threadId = await chatStore.createThread(content.text, {

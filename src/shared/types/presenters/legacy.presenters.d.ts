@@ -517,6 +517,15 @@ export interface IConfigPresenter {
   removeProviderAtomic(providerId: string): void
   reorderProvidersAtomic(providers: LLM_PROVIDER[]): void
   updateProvidersBatch(batchUpdate: ProviderBatchUpdate): void
+
+  // Agent management methods
+  getAgents(): Promise<Agent[]>
+  setAgents(agents: Agent[]): Promise<void>
+  addAgent(agent: Agent): Promise<void>
+  installAgent(agentId: string): Promise<boolean>
+  uninstallAgent(agentId: string): Promise<boolean>
+  getAgentInstallStatus(agentId: string): Promise<boolean>
+  importAgentFromUrl(url: string): Promise<Agent>
 }
 export type RENDERER_MODEL_META = {
   id: string
@@ -1956,4 +1965,34 @@ export interface HookExecutionResult {
   success: boolean
   result?: void | boolean
   error?: Error
+}
+
+// 智能体接口定义
+export interface Agent {
+  id: string
+  name: string
+  description: string
+  icon: string
+  category: string
+  installed: boolean
+  version: string
+  provider?: AgentProvider
+  skills: Skill[]
+  mcpServers: string[]
+  config?: Record<string, any>
+}
+
+export interface Skill {
+  id: string
+  name: string
+  description: string
+  tags: string[]
+  examples: string[]
+  imputModes: string[]
+  ouputModes: string[]
+}
+
+export interface AgentProvider {
+  organization: string
+  url: string
 }

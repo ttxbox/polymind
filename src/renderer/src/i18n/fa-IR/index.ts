@@ -16,6 +16,7 @@ import artifacts from './artifacts.json'
 import chat from './chat.json'
 import contextMenu from './contextMenu.json'
 import promptSetting from './promptSetting.json'
+import agents from './agents.json'
 
 const others = {
   Silicon: 'SiliconFlow',
@@ -49,5 +50,6 @@ export default {
   chat,
   contextMenu,
   promptSetting,
+  agents,
   ...others
 }

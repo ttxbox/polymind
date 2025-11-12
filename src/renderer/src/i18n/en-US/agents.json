@@ -1,0 +1,128 @@
+{
+  "categories": {
+    "all": "All",
+    "my": "My",
+    "development": "Development",
+    "productivity": "Productivity",
+    "analytics": "Analytics",
+    "research": "Research",
+    "design": "Design",
+    "support": "Support"
+  },
+  "agentCard": {
+    "details": {
+      "basicInfo": "Basic Information",
+      "version": "Version",
+      "provider": "Provider",
+      "skills": "Skills",
+      "mcpServers": "MCP Servers"
+    }
+  },
+  "toast": {
+    "installSuccess": {
+      "title": "Installation Successful",
+      "description": "{name} has been successfully installed"
+    },
+    "configure": {
+      "title": "Configuration",
+      "description": "Opening configuration interface for {name}"
+    },
+    "uninstallSuccess": {
+      "title": "Uninstall Successful",
+      "description": "{name} has been successfully uninstalled"
+    },
+    "installError": {
+      "title": "Installation Failed",
+      "description": "Failed to install {name}"
+    },
+    "uninstallError": {
+      "title": "Uninstall Failed",
+      "description": "Failed to uninstall {name}"
+    }
+  },
+  "search": {
+    "placeholder": "Search agents..."
+  },
+  "results": "results",
+  "empty": {
+    "title": "No agents found",
+    "description": "Try changing your search criteria or category filter"
+  },
+  "import": {
+    "button": "Import Agent",
+    "dialog": {
+      "title": "Import Agent",
+      "description": "Enter the URL of the agent card to import",
+      "urlLabel": "Agent Card URL",
+      "urlPlaceholder": "https://example.com/.well-known/agent-card.json",
+      "cancel": "Cancel",
+      "import": "Import",
+      "importing": "Importing..."
+    },
+    "success": {
+      "title": "Import Successful",
+      "description": "{name} has been successfully imported"
+    },
+    "error": {
+      "title": "Import Failed",
+      "invalidUrl": "Please enter a valid URL",
+      "invalidUrlFormat": "Invalid URL format, please use a valid URL starting with http:// or https://",
+      "failed": "Failed to import agent: {error}"
+    }
+  },
+  "create": {
+    "button": "Create Agent",
+    "dialog": {
+      "title": "Create Agent",
+      "description": "Fill in the basic information of the agent",
+      "nameLabel": "Agent Name",
+      "namePlaceholder": "Enter agent name",
+      "nameHelper": "Display name of the agent",
+      "descriptionLabel": "Agent Description",
+      "descriptionPlaceholder": "Enter agent description",
+      "descriptionHelper": "Briefly describe the function and purpose of the agent",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Select category",
+      "categoryHelper": "Select the category of the agent",
+      "providerLabel": "Provider",
+      "providerNameLabel": "Provider Name",
+      "providerPlaceholder": "Enter provider name",
+      "providerHelper": "Provider or author of the agent",
+      "providerUrlLabel": "Provider URL",
+      "providerUrlPlaceholder": "Enter provider website URL",
+      "providerUrlHelper": "Official website or documentation link of the provider",
+      "mcpServersLabel": "MCP Servers",
+      "noMcpServers": "No MCP servers available",
+      "mcpServersHelper": "Select MCP servers that this agent can use",
+      "skillsLabel": "Skills Configuration",
+      "parseSkills": "Parse Skills",
+      "skillsPreview": "Skills Preview",
+      "noSkills": "No skills yet",
+      "skillsHelper": "Enter JSON format skills configuration data",
+      "versionLabel": "Version",
+      "versionPlaceholder": "Enter version number",
+      "versionHelper": "Version number of the agent",
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "success": {
+      "title": "Create Successful",
+      "description": "{name} has been successfully created",
+      "skillsImported": "Successfully parsed {count} skills"
+    },
+    "error": {
+      "title": "Create Failed",
+      "invalidForm": "Please fill in all required fields",
+      "invalidSkillsFormat": "Skills data format is incorrect, please check JSON format",
+      "failed": "Failed to create agent: {error}"
+    }
+  },
+  "sidebar": {
+    "tabs": {
+      "history": "Conversations",
+      "agents": "Agents"
+    }
+  },
+  "installed": "Installed"
+}
