@@ -46,6 +46,7 @@ import { AihubmixProvider } from './providers/aihubmixProvider'
 import { _302AIProvider } from './providers/_302AIProvider'
 import { ModelscopeProvider } from './providers/modelscopeProvider'
 import { VercelAIGatewayProvider } from './providers/vercelAIGatewayProvider'
+import { jsonrepair } from 'jsonrepair'
 
 // Rate limit configuration interface
 interface RateLimitConfig {
@@ -2067,6 +2068,17 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     abortController: AbortController,
     eventId: string
   ): AsyncGenerator<LLMAgentEvent, boolean, unknown> {
+    let parsedArguments: Record<string, unknown> | null = null
+    let normalizedArgumentsText = toolCall.arguments
+    let argumentParsingError: Error | null = null
+
+    try {
+      parsedArguments = this.parseBuiltInToolArguments(toolCall.arguments)
+      normalizedArgumentsText = JSON.stringify(parsedArguments)
+    } catch (error) {
+      argumentParsingError = error instanceof Error ? error : new Error(String(error))
+    }
+
     yield {
       type: 'response',
       data: {
@@ -2074,7 +2086,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
         tool_call: 'running',
         tool_call_id: toolCall.id,
         tool_call_name: toolCall.name,
-        tool_call_params: toolCall.arguments,
+        tool_call_params: normalizedArgumentsText,
         tool_call_server_name: 'Built-in Tool',
         tool_call_server_icons: [],
         tool_call_server_description: 'System built-in tool'
@@ -2082,9 +2094,15 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     }
 
     try {
+      if (argumentParsingError) {
+        throw argumentParsingError
+      }
+      if (!parsedArguments) {
+        throw new Error('Failed to parse built-in tool arguments.')
+      }
       const toolResponse = await presenter.builtInToolsPresenter.executeBuiltInTool(
         toolCall.name,
-        JSON.parse(toolCall.arguments),
+        parsedArguments,
         toolCall.id
       )
 
@@ -2103,7 +2121,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
       const formattedToolRecordText = `<function_call>${JSON.stringify({
         function_call_record: {
           name: toolCall.name,
-          arguments: toolCall.arguments,
+          arguments: normalizedArgumentsText,
           response: toolResponse.content
         }
       })}</function_call>`
@@ -2144,7 +2162,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
           tool_call_id: toolCall.id,
           tool_call_response: toolResponse.content,
           tool_call_name: toolCall.name,
-          tool_call_params: toolCall.arguments,
+          tool_call_params: normalizedArgumentsText,
           tool_call_server_name: 'Built-in Tool',
           tool_call_server_icons: [],
           tool_call_server_description: 'System built-in tool',
@@ -2197,7 +2215,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
           tool_call: 'error',
           tool_call_id: toolCall.id,
           tool_call_name: toolCall.name,
-          tool_call_params: toolCall.arguments,
+          tool_call_params: normalizedArgumentsText,
           tool_call_response: errorMessage,
           tool_call_server_name: 'Built-in Tool',
           tool_call_server_icons: [],
@@ -2207,6 +2225,47 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     }
 
     return abortController.signal.aborted
+  }
+
+  private parseBuiltInToolArguments(argumentsText: string): Record<string, unknown> {
+    const tryParse = (input: string): Record<string, unknown> => JSON.parse(input)
+
+    try {
+      return tryParse(argumentsText)
+    } catch (parseError) {
+      console.warn(
+        '[BuiltInTool] JSON.parse failed for arguments, attempting jsonrepair fallback.',
+        parseError
+      )
+
+      try {
+        return tryParse(jsonrepair(argumentsText))
+      } catch (repairError) {
+        console.warn(
+          '[BuiltInTool] jsonrepair fallback failed, attempting to escape invalid backslashes.',
+          repairError
+        )
+
+        const escaped = this.escapeInvalidBackslashes(argumentsText)
+        if (escaped === argumentsText) {
+          throw repairError instanceof Error ? repairError : new Error(String(repairError))
+        }
+
+        try {
+          return tryParse(escaped)
+        } catch (escapedError) {
+          console.error(
+            '[BuiltInTool] Failed to parse arguments after escaping invalid backslashes.',
+            escapedError
+          )
+          throw escapedError instanceof Error ? escapedError : new Error(String(escapedError))
+        }
+      }
+    }
+  }
+
+  private escapeInvalidBackslashes(input: string): string {
+    return input.replace(/\\(?!["\\/bfnrtu])/g, '\\\\')
   }
 
   private parseBuiltInToolCalls(
