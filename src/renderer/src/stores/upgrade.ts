@@ -213,11 +213,11 @@ export const useUpgradeStore = defineStore('upgrade', () => {
 
       // 如果是自动更新模式，启动下载
       if (type === 'auto') {
-        const success = await upgradeP.startDownloadUpdate()
-        if (!success) {
-          // 如果自动更新失败，则使用手动链接
-          openUpdateDialog()
-        }
+        // const success = await upgradeP.startDownloadUpdate()
+        // if (!success) {
+        //   // 如果自动更新失败，则使用手动链接
+        //   openUpdateDialog()
+        // }
         return
       }
 
