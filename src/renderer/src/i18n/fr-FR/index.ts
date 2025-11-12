@@ -16,6 +16,7 @@ import artifacts from './artifacts.json'
 import chat from './chat.json'
 import contextMenu from './contextMenu.json'
 import promptSetting from './promptSetting.json'
+import agents from './agents.json'
 
 // 单独的顶层键
 const others = {
@@ -50,5 +51,6 @@ export default {
   chat,
   contextMenu,
   promptSetting,
+  agents,
   ...others
 }
