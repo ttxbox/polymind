@@ -43,7 +43,7 @@ const getPlatformInfo = () => {
 
 // 获取版本检查的基础URL
 const getVersionCheckBaseUrl = () => {
-  return 'https://cdn.deepchatai.cn'
+  return 'https://cdn.polymindai.cn'
 }
 
 // 获取自动更新状态文件路径
@@ -110,7 +110,7 @@ export class UpgradePresenter implements IUpgradePresenter {
       // 而是确保使用之前从versionUrl获取的原始信息
       console.log('使用已保存的版本信息:', this._versionInfo)
       // 检测到更新后自动开始下载
-      this.startDownloadUpdate()
+      // this.startDownloadUpdate()
     })
 
     // 下载进度

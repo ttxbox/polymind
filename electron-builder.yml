@@ -30,6 +30,8 @@ extraResources:
   - from: ./runtime/
     to: app.asar.unpacked/runtime
     filter: ['**/*']
+  - from: ./agentcard-settings.json
+    to: ./
 electronLanguages:
   - zh-CN
   - zh-TW
@@ -80,11 +82,22 @@ linux:
   target:
     - AppImage
     - tar.gz
-  maintainer: ThinkInAIXYZ
+    - rpm
+  maintainer: openEuler
   category: Utility
   artifactName: ${name}-${version}-linux-${arch}.${ext}
   mimeTypes:
     - x-scheme-handler/polymind
+  desktop:
+    entry: |
+      [Desktop Entry]
+      Name=PolyMind
+      Comment=AI Client Application
+      Categories=Utility;
+      Icon=${build/icon.png}
+      Terminal=false
+      Type=Application
+      StartupWMClass=PolyMind
 npmRebuild: true
 publish:
   provider: generic

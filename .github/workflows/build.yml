@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/win-unpacked
@@ -77,10 +77,12 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: [x64]
+        arch: [x64, arm64]
         include:
           - arch: x64
             platform: linux-x64
+          - arch: arm64
+            platform: linux-arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -119,7 +121,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/linux-unpacked
@@ -180,7 +182,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/mac/*

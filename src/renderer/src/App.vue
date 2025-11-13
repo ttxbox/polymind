@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, onBeforeUnmount } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
-import UpdateDialog from './components/ui/UpdateDialog.vue'
 import { usePresenter } from './composables/usePresenter'
 import SelectedTextContextMenu from './components/message/SelectedTextContextMenu.vue'
 import { useArtifactStore } from './stores/artifact'
@@ -324,7 +323,7 @@ onBeforeUnmount(() => {
       <RouterView />
     </div>
     <!-- Global update dialog -->
-    <UpdateDialog />
+    <!-- <UpdateDialog /> -->
     <!-- Global message dialog -->
     <MessageDialog />
     <!-- Global Toast notifications -->
