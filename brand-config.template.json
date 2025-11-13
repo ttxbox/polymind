@@ -5,13 +5,13 @@
     "productName": "PolyMind",
     "appId": "com.wefonk.polymind",
     "description": "PolyMind，一个简单易用的AI客户端",
-    "author": "ThinkInAIXYZ",
-    "website": "https://deepchatai.cn",
-    "copyright": "© 2025 ThinkInAIXYZ",
-    "executableName": "DeepChat"
+    "author": "openEuler",
+    "website": "https://polymindai.cn",
+    "copyright": "© 2025 openEuler",
+    "executableName": "PolyMind"
   },
   "update": {
-    "baseUrl": "https://cdn.deepchatai.cn/upgrade/"
+    "baseUrl": "https://cdn.polymindai.cn/upgrade/"
   },
   "i18n": {
     "appTitle": {

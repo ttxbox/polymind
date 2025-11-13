@@ -43,7 +43,7 @@ const getPlatformInfo = () => {
 
 // 获取版本检查的基础URL
 const getVersionCheckBaseUrl = () => {
-  return 'https://cdn.deepchatai.cn'
+  return 'https://cdn.polymindai.cn'
 }
 
 // 获取自动更新状态文件路径
