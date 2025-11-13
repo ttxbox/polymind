@@ -46,6 +46,7 @@ import { AihubmixProvider } from './providers/aihubmixProvider'
 import { _302AIProvider } from './providers/_302AIProvider'
 import { ModelscopeProvider } from './providers/modelscopeProvider'
 import { VercelAIGatewayProvider } from './providers/vercelAIGatewayProvider'
+import { jsonrepair } from 'jsonrepair'
 
 // Rate limit configuration interface
 interface RateLimitConfig {
@@ -795,6 +796,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
         }> = []
         const currentToolChunks: Record<string, { name: string; arguments_chunk: string }> = {}
         let pendingBuiltInTextBuffer = ''
+        let shouldStopStreamForToolCall = false
 
         try {
           console.log(`[Agent Loop] Iteration ${toolCallCount + 1} for event: ${eventId}`)
@@ -846,7 +848,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
               case 'text':
                 if (chunk.content) {
                   // 处理文本中的 <built_in_tool_call> 标签，并将普通文本或工具事件下发给前端
-                  const { updatedContent, pendingBuffer, responses } =
+                  const { updatedContent, pendingBuffer, responses, shouldStopStream } =
                     await this.processBuiltInToolStreamingText({
                       chunkContent: chunk.content,
                       currentContent,
@@ -860,6 +862,9 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
                   // 将辅助函数收集到的响应逐条发送
                   for (const response of responses) {
                     yield response
+                  }
+                  if (shouldStopStream) {
+                    shouldStopStreamForToolCall = true
                   }
                 }
                 break
@@ -918,12 +923,13 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
                 break
               case 'tool_call_end':
                 if (chunk.tool_call_id && currentToolChunks[chunk.tool_call_id]) {
+                  const toolName = currentToolChunks[chunk.tool_call_id].name
                   const completeArgs =
                     chunk.tool_call_arguments_complete ??
                     currentToolChunks[chunk.tool_call_id].arguments_chunk
                   currentToolCalls.push({
                     id: chunk.tool_call_id,
-                    name: currentToolChunks[chunk.tool_call_id].name,
+                    name: toolName,
                     arguments: completeArgs
                   })
 
@@ -934,12 +940,16 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
                       eventId,
                       tool_call: 'update',
                       tool_call_id: chunk.tool_call_id,
-                      tool_call_name: currentToolChunks[chunk.tool_call_id].name,
+                      tool_call_name: toolName,
                       tool_call_params: completeArgs
                     }
                   }
 
                   delete currentToolChunks[chunk.tool_call_id]
+                  // tool_call_end分支里是内置工具时同样触发提前终止，避免 provider依赖于尚未完成的结果继续输出
+                  if (presenter.builtInToolsPresenter.isBuiltInTool(toolName)) {
+                    shouldStopStreamForToolCall = true
+                  }
                 }
                 break
               case 'usage':
@@ -1043,7 +1053,17 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
                 // Stop event itself doesn't need to be yielded here, handled by loop logic
                 break
             }
+
+            // 出现内置工具调用，就停止继续消费流
+            if (shouldStopStreamForToolCall) {
+              break
+            }
           } // End of inner loop (for await...of stream)
+
+          // 出现内置工具调用,打断for await, 继续对话让执行结果在下一轮反馈给 LLM
+          if (shouldStopStreamForToolCall && currentToolCalls.length > 0) {
+            needContinueConversation = true
+          }
 
           if (abortController.signal.aborted) break // Break outer loop if aborted
 
@@ -1940,6 +1960,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     updatedContent: string
     pendingBuffer: string
     responses: Array<{ type: 'response'; data: any }>
+    shouldStopStream: boolean
   }> {
     // 缓存标记和基本状态
     const builtInStartTag = '<built_in_tool_call>'
@@ -1947,6 +1968,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     const responses: Array<{ type: 'response'; data: any }> = []
     let mergedBuffer = pendingBuffer + chunkContent
     let updatedContent = currentContent
+    let shouldStopStream = false
 
     // 计算可安全输出的文本长度，避免截断标签
     const getSafeFlushIndex = (buffer: string): number => {
@@ -1980,7 +2002,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
         }
 
         const remaining = mergedBuffer.slice(safeFlushIndex)
-        return { updatedContent, pendingBuffer: remaining, responses }
+        return { updatedContent, pendingBuffer: remaining, responses, shouldStopStream }
       }
 
       // 输出起始标签之前的纯文本
@@ -2003,7 +2025,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
 
       // 没有闭合标签，继续等待后续数据
       if (endIndex === -1) {
-        return { updatedContent, pendingBuffer: mergedBuffer, responses }
+        return { updatedContent, pendingBuffer: mergedBuffer, responses, shouldStopStream }
       }
 
       // 截取完整的内置工具标签块
@@ -2023,11 +2045,12 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
         })
       } else {
         // 解析成功则缓存工具信息，并通知前端工具调用事件
-        for (const call of parsedCalls) {
+        const [firstCall] = parsedCalls
+        if (firstCall) {
           currentToolCalls.push({
-            id: call.id,
-            name: call.name,
-            arguments: call.arguments
+            id: firstCall.id,
+            name: firstCall.name,
+            arguments: firstCall.arguments
           })
 
           responses.push({
@@ -2035,8 +2058,8 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
             data: {
               eventId,
               tool_call: 'start',
-              tool_call_id: call.id,
-              tool_call_name: call.name,
+              tool_call_id: firstCall.id,
+              tool_call_name: firstCall.name,
               tool_call_params: ''
             }
           })
@@ -2046,19 +2069,25 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
             data: {
               eventId,
               tool_call: 'update',
-              tool_call_id: call.id,
-              tool_call_name: call.name,
-              tool_call_params: call.arguments
+              tool_call_id: firstCall.id,
+              tool_call_name: firstCall.name,
+              tool_call_params: firstCall.arguments
             }
           })
+
+          shouldStopStream = true
         }
       }
 
       // 移动到下一个待处理区间
       mergedBuffer = mergedBuffer.slice(endIndex + builtInEndTag.length)
+
+      if (shouldStopStream) {
+        return { updatedContent, pendingBuffer: mergedBuffer, responses, shouldStopStream }
+      }
     }
 
-    return { updatedContent, pendingBuffer: mergedBuffer, responses }
+    return { updatedContent, pendingBuffer: mergedBuffer, responses, shouldStopStream }
   }
 
   private async *handleBuiltInToolCall(
@@ -2067,6 +2096,17 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     abortController: AbortController,
     eventId: string
   ): AsyncGenerator<LLMAgentEvent, boolean, unknown> {
+    let parsedArguments: Record<string, unknown> | null = null
+    let normalizedArgumentsText = toolCall.arguments
+    let argumentParsingError: Error | null = null
+
+    try {
+      parsedArguments = this.parseBuiltInToolArguments(toolCall.arguments)
+      normalizedArgumentsText = JSON.stringify(parsedArguments)
+    } catch (error) {
+      argumentParsingError = error instanceof Error ? error : new Error(String(error))
+    }
+
     yield {
       type: 'response',
       data: {
@@ -2074,7 +2114,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
         tool_call: 'running',
         tool_call_id: toolCall.id,
         tool_call_name: toolCall.name,
-        tool_call_params: toolCall.arguments,
+        tool_call_params: normalizedArgumentsText,
         tool_call_server_name: 'Built-in Tool',
         tool_call_server_icons: [],
         tool_call_server_description: 'System built-in tool'
@@ -2082,9 +2122,15 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     }
 
     try {
+      if (argumentParsingError) {
+        throw argumentParsingError
+      }
+      if (!parsedArguments) {
+        throw new Error('Failed to parse built-in tool arguments.')
+      }
       const toolResponse = await presenter.builtInToolsPresenter.executeBuiltInTool(
         toolCall.name,
-        JSON.parse(toolCall.arguments),
+        parsedArguments,
         toolCall.id
       )
 
@@ -2103,7 +2149,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
       const formattedToolRecordText = `<function_call>${JSON.stringify({
         function_call_record: {
           name: toolCall.name,
-          arguments: toolCall.arguments,
+          arguments: normalizedArgumentsText,
           response: toolResponse.content
         }
       })}</function_call>`
@@ -2144,7 +2190,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
           tool_call_id: toolCall.id,
           tool_call_response: toolResponse.content,
           tool_call_name: toolCall.name,
-          tool_call_params: toolCall.arguments,
+          tool_call_params: normalizedArgumentsText,
           tool_call_server_name: 'Built-in Tool',
           tool_call_server_icons: [],
           tool_call_server_description: 'System built-in tool',
@@ -2197,7 +2243,7 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
           tool_call: 'error',
           tool_call_id: toolCall.id,
           tool_call_name: toolCall.name,
-          tool_call_params: toolCall.arguments,
+          tool_call_params: normalizedArgumentsText,
           tool_call_response: errorMessage,
           tool_call_server_name: 'Built-in Tool',
           tool_call_server_icons: [],
@@ -2207,6 +2253,47 @@ export class LLMProviderPresenter implements ILlmProviderPresenter {
     }
 
     return abortController.signal.aborted
+  }
+
+  private parseBuiltInToolArguments(argumentsText: string): Record<string, unknown> {
+    const tryParse = (input: string): Record<string, unknown> => JSON.parse(input)
+
+    try {
+      return tryParse(argumentsText)
+    } catch (parseError) {
+      console.warn(
+        '[BuiltInTool] JSON.parse failed for arguments, attempting jsonrepair fallback.',
+        parseError
+      )
+
+      try {
+        return tryParse(jsonrepair(argumentsText))
+      } catch (repairError) {
+        console.warn(
+          '[BuiltInTool] jsonrepair fallback failed, attempting to escape invalid backslashes.',
+          repairError
+        )
+
+        const escaped = this.escapeInvalidBackslashes(argumentsText)
+        if (escaped === argumentsText) {
+          throw repairError instanceof Error ? repairError : new Error(String(repairError))
+        }
+
+        try {
+          return tryParse(escaped)
+        } catch (escapedError) {
+          console.error(
+            '[BuiltInTool] Failed to parse arguments after escaping invalid backslashes.',
+            escapedError
+          )
+          throw escapedError instanceof Error ? escapedError : new Error(String(escapedError))
+        }
+      }
+    }
+  }
+
+  private escapeInvalidBackslashes(input: string): string {
+    return input.replace(/\\(?!["\\/bfnrtu])/g, '\\\\')
   }
 
   private parseBuiltInToolCalls(
