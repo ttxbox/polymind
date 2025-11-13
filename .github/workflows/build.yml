@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/win-unpacked
@@ -121,7 +121,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/linux-unpacked
@@ -182,7 +182,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deepchat-${{ matrix.platform }}
+          name: polymind-${{ matrix.platform }}
           path: |
             dist/*
             !dist/mac/*
