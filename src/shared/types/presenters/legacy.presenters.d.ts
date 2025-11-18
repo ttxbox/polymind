@@ -390,8 +390,8 @@ export interface IConfigPresenter {
   getCopyWithCotEnabled(): boolean
   setCopyWithCotEnabled(enabled: boolean): void
   // Built-in tools settings
-  getUseBuiltInTools(): boolean
-  setUseBuiltInTools(enabled: boolean): void
+  getUseBuiltInToolsEnabled(): boolean
+  setUseBuiltInToolsEnabled(enabled: boolean): void
   // Floating button settings
   getFloatingButtonEnabled(): boolean
   setFloatingButtonEnabled(enabled: boolean): void
@@ -1117,6 +1117,8 @@ export interface ProgressResponse {
 
 //
 export interface IBuiltInToolsPresenter {
+  getBuiltInToolDefinitions(enabled?: boolean): any
+
   /**
    * 获取所有内置工具的定义
    */
@@ -1145,6 +1147,11 @@ export interface IBuiltInToolsPresenter {
     content: string
     success: boolean
     metadata?: Record<string, any>
+    rawData: MCPToolResponse
+  }>
+
+  callTool(toolCall: MCPToolCall): Promise<{
+    content: string
     rawData: MCPToolResponse
   }>
 }

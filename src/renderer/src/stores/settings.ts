@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const searchPreviewEnabled = ref<boolean>(true) // 搜索预览是否启用，默认启用
   const contentProtectionEnabled = ref<boolean>(true) // 投屏保护是否启用，默认启用
   const copyWithCotEnabled = ref<boolean>(true)
-  const useBuiltInTools = ref<boolean>(false) // 内置工具是否启用，默认不启用
+  const useBuiltInToolsEnabled = ref<boolean>(false) // 内置工具是否启用，默认不启用
   const notificationsEnabled = ref<boolean>(true) // 系统通知是否启用，默认启用
   const fontSizeLevel = ref<number>(DEFAULT_FONT_SIZE_LEVEL) // 字体大小级别，默认为 1
   // Ollama 相关状态
@@ -297,7 +297,7 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       loggingEnabled.value = await configP.getLoggingEnabled()
       copyWithCotEnabled.value = await configP.getCopyWithCotEnabled()
-      useBuiltInTools.value = await configP.getUseBuiltInTools()
+      useBuiltInToolsEnabled.value = await configP.getUseBuiltInToolsEnabled()
 
       // 获取全部 provider
       providers.value = await configP.getProviders()
@@ -1476,13 +1476,17 @@ export const useSettingsStore = defineStore('settings', () => {
     await configP.setCopyWithCotEnabled(enabled)
   }
 
-  const setUseBuiltInTools = async (enabled: boolean) => {
-    useBuiltInTools.value = Boolean(enabled)
-    await configP.setUseBuiltInTools(enabled)
-  }
-
   const getCopyWithCotEnabled = async (): Promise<boolean> => {
     return await configP.getCopyWithCotEnabled()
+  }
+
+  const getUseBuiltInToolsEnabled = async (): Promise<boolean> => {
+    return configP.getUseBuiltInToolsEnabled()
+  }
+
+  const setUseBuiltInToolsEnabled = async (enabled: boolean) => {
+    useBuiltInToolsEnabled.value = Boolean(enabled)
+    configP.setUseBuiltInToolsEnabled(enabled)
   }
 
   const setupCopyWithCotEnabledListener = () => {
@@ -1708,7 +1712,7 @@ export const useSettingsStore = defineStore('settings', () => {
     searchPreviewEnabled,
     contentProtectionEnabled,
     copyWithCotEnabled,
-    useBuiltInTools,
+    useBuiltInToolsEnabled,
     notificationsEnabled, // 暴露系统通知状态
     loggingEnabled,
     updateProvider,
@@ -1758,7 +1762,8 @@ export const useSettingsStore = defineStore('settings', () => {
     setLoggingEnabled,
     getCopyWithCotEnabled,
     setCopyWithCotEnabled,
-    setUseBuiltInTools,
+    getUseBuiltInToolsEnabled,
+    setUseBuiltInToolsEnabled,
     setupCopyWithCotEnabledListener,
     testSearchEngine,
     refreshSearchEngines,
