@@ -1,43 +1,83 @@
+import { AgentCard } from '@a2a-js/sdk'
 import { A2AClientAction } from './A2AClientAction'
 
-export class serverManager {
-  private clients: Map<string, A2AClientAction> = new Map<string, A2AClientAction>()
+export class ServerManager {
+  //key:serverURL value:A2AClientAction
+  private clientPool: Map<string, A2AClientAction>
 
-  /**
-   * Add a new A2A server
-   */
-  addA2AServer(serverID: string) {
-    if (this.clients.has(serverID)) {
-      throw new Error(`A2A server ${serverID} already exists`)
+  constructor() {
+    this.clientPool = new Map()
+  }
+
+  async addA2AServer(serverURL: string): Promise<AgentCard> {
+    const normalizedURL = this.normalLizeServerURL(serverURL)
+    if (!normalizedURL) {
+      throw new Error(`[A2A] Invalid server URL: ${serverURL}`)
     }
-    this.clients.set(serverID, new A2AClientAction(serverID))
+
+    if (this.clientPool.has(normalizedURL)) {
+      throw new Error(`[A2A] ${serverURL} has been added`)
+    }
+
+    const client = new A2AClientAction(normalizedURL)
+    const agentCard = await client.getAgentCard().catch((error: Error) => {
+      throw new Error(error.message)
+    })
+
+    this.clientPool.set(normalizedURL, client)
+    return agentCard
   }
 
-  /**
-   * Remove an A2A server
-   */
-  removeA2AServer(serverID: string) {
-    this.clients.delete(serverID)
-  }
-
-  getA2AServers(): Record<string, A2AClientAction> {
-    return Object.fromEntries(this.clients.entries())
-  }
-  /**
-   * Check if a server is running
-   */
-  async isA2AServerRunning(serverID: string): Promise<boolean> {
-    if (!this.clients.has(serverID)) {
+  async removeA2AServer(serverURL: string): Promise<boolean> {
+    const normalizedURL = this.normalLizeServerURL(serverURL)
+    if (!normalizedURL) {
+      throw new Error(`[A2A] Invalid server URL: ${serverURL}`)
+    }
+    if (!this.clientPool.has(normalizedURL)) {
+      console.log(`[A2A] ${serverURL} doesn't exist`)
       return false
     }
-    const client = this.clients.get(serverID)
-    return client ? await client.isConnected() : false
+    return this.clientPool.delete(normalizedURL)
   }
 
-  /**
-   * Get a running client by name
-   */
-  getA2AClient(serverID: string): A2AClientAction | undefined {
-    return this.clients.get(serverID)
+  async getA2AClient(serverURL: string): Promise<A2AClientAction | undefined> {
+    const normalizedURL = this.normalLizeServerURL(serverURL)
+    if (!normalizedURL) {
+      console.log(`[A2A] Invalid server URL: ${serverURL}`)
+      return
+    }
+    if (!this.clientPool.has(normalizedURL)) {
+      console.log(`[A2A] ${serverURL} doesn't exist`)
+      return
+    }
+    return this.clientPool.get(normalizedURL)
+  }
+
+  async isA2AServerRunning(serverURL: string): Promise<boolean> {
+    const a2aClientAction = await this.getA2AClient(serverURL)
+    if (!a2aClientAction) {
+      return false
+    } else {
+      return await a2aClientAction.isConnected()
+    }
+  }
+
+  private normalLizeServerURL(serverURL: string): string | undefined {
+    if (!serverURL || !serverURL.trim()) {
+      console.log('[A2A] server URL is null')
+      return undefined
+    }
+    let trimmed = serverURL.trim()
+    try {
+      new URL(trimmed)
+    } catch (e) {
+      console.log('[A2A] server URL is invalid:', serverURL)
+      return undefined
+    }
+    const agentCardSuffix = '/.well-known/agent-card.json'
+    if (trimmed.endsWith(agentCardSuffix)) {
+      trimmed = trimmed.slice(0, -agentCardSuffix.length)
+    }
+    return trimmed
   }
 }

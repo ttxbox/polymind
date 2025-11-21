@@ -23,7 +23,8 @@ import {
   IThreadPresenter,
   IUpgradePresenter,
   IWindowPresenter,
-  IBuiltInToolsPresenter
+  IBuiltInToolsPresenter,
+  IA2APresenter
 } from '@shared/presenter'
 import { eventBus } from '@/eventbus'
 import { LLMProviderPresenter } from './llmProviderPresenter'
@@ -42,6 +43,7 @@ import { FloatingButtonPresenter } from './floatingButtonPresenter'
 import { CONFIG_EVENTS, WINDOW_EVENTS } from '@/events'
 import { KnowledgePresenter } from './knowledgePresenter'
 import { BuiltInToolsPresenter } from './builtInToolsPresenter'
+import { A2APresenter } from './A2APresenter'
 
 // IPC调用上下文接口
 interface IPCCallContext {
@@ -83,6 +85,7 @@ export class Presenter implements IPresenter {
   // llamaCppPresenter: LlamaCppPresenter // 保留原始注释
   dialogPresenter: IDialogPresenter
   lifecycleManager: ILifecycleManager
+  a2aPresenter: IA2APresenter
 
   private constructor(lifecycleManager: ILifecycleManager) {
     // Store lifecycle manager reference for component access
@@ -102,6 +105,7 @@ export class Presenter implements IPresenter {
       this.llmproviderPresenter,
       this.configPresenter
     )
+    this.a2aPresenter = new A2APresenter()
     this.mcpPresenter = new McpPresenter(this.configPresenter)
     this.upgradePresenter = new UpgradePresenter(this.configPresenter)
     this.shortcutPresenter = new ShortcutPresenter(this.configPresenter)
