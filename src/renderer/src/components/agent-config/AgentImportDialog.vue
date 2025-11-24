@@ -1,6 +1,6 @@
 <template>
   <Dialog :open="showDialog" @update:open="$emit('update:showDialog', $event)">
-    <DialogContent class="max-w-lg bg-card border-border">
+    <DialogContent class="max-w-2xl bg-card border-border overflow-hidden">
       <DialogHeader>
         <DialogTitle class="text-foreground">{{ t('agents.import.dialog.title') }}</DialogTitle>
         <DialogDescription class="text-muted-foreground">
@@ -8,16 +8,180 @@
         </DialogDescription>
       </DialogHeader>
 
-      <div class="space-y-4 py-4">
-        <div class="space-y-2">
-          <Label for="import-url" class="text-foreground">{{ t('agents.import.dialog.urlLabel') }}</Label>
-          <Input
-            id="import-url"
-            v-model="importUrl"
-            :placeholder="t('agents.import.dialog.urlPlaceholder')"
-            class="w-full border-border bg-background text-foreground"
-            @keyup.enter="handleImport"
-          />
+      <div class="space-y-5 py-4 max-h-[70vh] overflow-y-auto pr-1">
+        <div class="rounded-2xl border border-border/80 bg-background/70 p-5 shadow-sm space-y-4">
+          <div class="flex items-start gap-3">
+            <div
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+            >
+              1
+            </div>
+            <div class="space-y-1">
+              <div class="text-sm font-semibold text-foreground">
+                {{ t('agents.import.dialog.a2aStepParseTitle') }}
+              </div>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                {{ t('agents.import.dialog.a2aStepParseDescription') }}
+              </p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="space-y-2">
+              <Label for="import-url" class="text-foreground">{{ t('agents.import.dialog.urlLabel') }}</Label>
+              <Input
+                id="import-url"
+                v-model="importUrl"
+                :placeholder="t('agents.import.dialog.a2aAgentCardPlaceholder')"
+                class="w-full border border-border bg-background text-foreground"
+                @keyup.enter="handleImport"
+              />
+            </div>
+            <Button
+              type="button"
+              class="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              :disabled="isParsingA2AServer || !importUrl.trim()"
+              @click="parseA2AAgentCard"
+            >
+              <Icon
+                :icon="isParsingA2AServer ? 'lucide:loader-2' : 'lucide:scan'"
+                class="mr-2 h-4 w-4"
+                :class="{ 'animate-spin': isParsingA2AServer }"
+              />
+              {{
+                isParsingA2AServer
+                  ? t('agents.import.dialog.a2aParsingLabel')
+                  : t('agents.import.dialog.a2aParseButton')
+              }}
+            </Button>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-border/80 bg-background/70 p-5 shadow-sm space-y-4">
+          <div class="flex items-start gap-3">
+            <div
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+            >
+              2
+            </div>
+            <div class="space-y-1">
+              <div class="text-sm font-semibold text-foreground">
+                {{ t('agents.import.dialog.a2aStepConfigureTitle') }}
+              </div>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                {{ t('agents.import.dialog.a2aStepConfigureDescription') }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="a2aPreview"
+            class="space-y-5 rounded-2xl border border-border/70 bg-card/90 p-5"
+          >
+            <div class="text-sm font-semibold text-foreground">
+              {{ t('agents.import.dialog.a2aBasicInfoTitle') }}
+            </div>
+            <div class="space-y-4 text-sm">
+              <div class="space-y-1">
+                <div class="font-medium text-foreground">
+                  {{ t('agents.import.dialog.a2aAgentNameLabel') }}
+                </div>
+                <p class="leading-relaxed text-muted-foreground">
+                  {{ a2aPreview.agentCard.name }}
+                </p>
+              </div>
+              <div class="space-y-1">
+                <div class="font-medium text-foreground">
+                  {{ t('agents.import.dialog.a2aAgentDescriptionLabel') }}
+                </div>
+                <p class="leading-relaxed text-muted-foreground">
+                  {{ a2aPreview.agentCard.description || '--' }}
+                </p>
+              </div>
+              <div class="space-y-1">
+                <div class="font-medium text-foreground">
+                  {{ t('agents.import.dialog.a2aEndpointLabel') }}
+                </div>
+                <p class="leading-relaxed text-muted-foreground break-all">
+                  {{ a2aPreview.baseUrl }}
+                </p>
+              </div>
+              <div class="space-y-1">
+                <div class="font-medium text-foreground">
+                  {{ t('agents.import.dialog.a2aExpandableLabel') }}
+                </div>
+                <p class="leading-relaxed text-muted-foreground">
+                  {{ (a2aPreview.agentCard.skills?.length || 0) > 0 ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
+                </p>
+              </div>
+              <div class="space-y-1">
+                <div class="font-medium text-foreground">
+                  {{ t('agents.import.dialog.a2aStreamingLabel') }}
+                </div>
+                <p class="leading-relaxed text-muted-foreground">
+                  {{ a2aPreview.agentCard.streamingSupported ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="text-sm font-semibold text-foreground">
+              {{ t('agents.import.dialog.a2aSkillsLabel') }}
+            </div>
+            <div
+              v-if="a2aPreview.agentCard.skills?.length"
+              class="space-y-3"
+            >
+              <div
+                v-for="skill in a2aPreview.agentCard.skills"
+                :key="skill.name"
+                class="rounded-xl border border-border/60 bg-card/80"
+              >
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between gap-3 px-4 py-3"
+                  @click="toggleSkillExpanded(skill.name)"
+                >
+                  <div class="leading-relaxed text-muted-foreground">
+                    {{ skill.name }}
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100">
+                      {{ t('agents.import.dialog.a2aSkillAvailable') }}
+                    </span>
+                    <Icon
+                      icon="lucide:chevron-down"
+                      class="h-4 w-4 text-muted-foreground transition-transform"
+                      :class="isSkillExpanded(skill.name) ? 'rotate-180' : ''"
+                    />
+                  </div>
+                </button>
+                <div
+                  v-if="isSkillExpanded(skill.name)"
+                  class="border-t border-border/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground"
+                >
+                  {{ skill.description || t('agents.import.dialog.a2aSkillNoDescription') }}
+                </div>
+              </div>
+            </div>
+            <div
+              v-else
+              class="rounded-xl border border-dashed border-border/60 bg-muted/20 px-4 py-8 text-center text-xs text-muted-foreground"
+            >
+              {{ t('agents.import.dialog.a2aSkillsEmpty') }}
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="mt-2 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20 p-8 text-center text-xs text-muted-foreground"
+          >
+            <Icon icon="lucide:box" class="mb-3 h-10 w-10 text-muted-foreground/60" />
+            <div class="text-sm font-semibold text-muted-foreground">
+              {{ t('agents.import.dialog.a2aPreviewEmpty') }}
+            </div>
+            <p class="mt-1 max-w-xs text-muted-foreground/80">
+              {{ t('agents.import.dialog.a2aPreviewEmptyDescription') }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -60,6 +224,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import type { AgentCardData } from '@shared/presenter'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -76,16 +241,20 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+interface A2AServerEntry {
+  baseUrl: string
+  cardUrl: string
+  agentCard: AgentCardData
+}
+
 const importUrl = ref('')
 const isImporting = ref(false)
+const isParsingA2AServer = ref(false)
+const a2aPreview = ref<A2AServerEntry | null>(null)
+const expandedSkillMap = ref<Record<string, boolean>>({})
+const a2aServerPresenter = usePresenter('a2aPresenter')
 
-// 监听对话框显示状态变化，重置表单
-watch(() => props.showDialog, (newVal) => {
-  if (!newVal) {
-    importUrl.value = ''
-    isImporting.value = false
-  }
-})
+const AGENT_CARD_SUFFIX = '/.well-known/agent-card.json'
 
 // 校验URL是否合法
 const validateUrl = (url: string): { isValid: boolean; error?: string } => {
@@ -108,6 +277,104 @@ const validateUrl = (url: string): { isValid: boolean; error?: string } => {
 }
 
 
+const normalizeA2AServerUrls = (input: string) => {
+  const trimmed = input.trim()
+  if (!trimmed) {
+    throw new Error(t('agents.import.error.invalidUrl'))
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    throw new Error(t('agents.import.error.invalidUrlFormat'))
+  }
+
+  let baseUrl = parsed.toString().replace(/\/+$/, '')
+  if (baseUrl.endsWith(AGENT_CARD_SUFFIX)) {
+    baseUrl = baseUrl.slice(0, -AGENT_CARD_SUFFIX.length)
+  }
+  const cardUrl = `${baseUrl}${AGENT_CARD_SUFFIX}`
+  return { baseUrl, cardUrl }
+}
+
+const clearA2APreview = async () => {
+  const pendingPreview = a2aPreview.value
+  a2aPreview.value = null
+  expandedSkillMap.value = {}
+  if (!pendingPreview) {
+    return
+  }
+  try {
+    await a2aServerPresenter.removeA2AServer(pendingPreview.baseUrl)
+  } catch (error) {
+    console.warn('Failed to remove temporary A2A server:', error)
+  }
+}
+
+const isSkillExpanded = (name: string) => {
+  return !!expandedSkillMap.value[name]
+}
+
+const toggleSkillExpanded = (name: string) => {
+  expandedSkillMap.value = {
+    ...expandedSkillMap.value,
+    [name]: !expandedSkillMap.value[name]
+  }
+}
+
+const parseA2AAgentCard = async () => {
+  try {
+    const { baseUrl, cardUrl } = normalizeA2AServerUrls(importUrl.value)
+    isParsingA2AServer.value = true
+    await clearA2APreview()
+
+    const agentCardData = await a2aServerPresenter.addA2AServer(baseUrl)
+    if (!agentCardData) {
+      throw new Error('Failed to fetch agent card')
+    }
+
+    importUrl.value = cardUrl
+    a2aPreview.value = {
+      baseUrl,
+      cardUrl,
+      agentCard: agentCardData
+    }
+    expandedSkillMap.value = {}
+
+    toast({
+      title: t('agents.import.dialog.a2aParseSuccess'),
+      description: agentCardData.name,
+      duration: 600
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    toast({
+      title: t('agents.import.dialog.a2aParseFailed'),
+      description: message,
+      variant: 'destructive',
+      duration: 1000
+    })
+  } finally {
+    isParsingA2AServer.value = false
+  }
+}
+
+const resetDialogState = () => {
+  importUrl.value = ''
+  isImporting.value = false
+  isParsingA2AServer.value = false
+  expandedSkillMap.value = {}
+  void clearA2APreview()
+}
+
+// 监听对话框显示状态变化，重置表单
+watch(() => props.showDialog, (newVal) => {
+  if (!newVal) {
+    resetDialogState()
+  }
+})
+
 // 导入智能体
 const handleImport = async () => {
   const validation = validateUrl(importUrl.value)
@@ -129,6 +396,7 @@ const handleImport = async () => {
     
     // 调用后端导入方法获取agent数据
     const agent = await configPresenter.importAgentFromUrl(importUrl.value.trim())
+    await clearA2APreview()
     
     // 显示成功消息
     toast({
