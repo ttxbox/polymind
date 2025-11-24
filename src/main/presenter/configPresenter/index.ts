@@ -10,7 +10,8 @@ import {
   SystemPrompt,
   IModelConfig,
   BuiltinKnowledgeConfig,
-  Agent
+  Agent,
+  AgentCardData
 } from '@shared/presenter'
 import {
   ProviderChange,
@@ -1559,11 +1560,14 @@ export class ConfigPresenter implements IConfigPresenter {
   /**
    * 导出智能体数据
    */
-  async exportAgents(): Promise<{
+  async exportAgents(typeFilterCondition?: string): Promise<{
     agents: Agent[]
     installedAgents: string[]
     lastUpdateTime: number
   }> {
+    if (typeFilterCondition) {
+      return this.agentConfHelper.exportAgents(typeFilterCondition)
+    }
     return this.agentConfHelper.exportAgents()
   }
 
@@ -1575,10 +1579,10 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   /**
-   * 从URL导入智能体配置
+   * 从A2A AgentCard Data导入智能体配置
    */
-  async importAgentFromUrl(url: string): Promise<Agent> {
-    return this.agentConfHelper.importAgentFromUrl(url)
+  async importAgentFromA2AData(agentCardData: AgentCardData): Promise<Agent> {
+    return this.agentConfHelper.importAgentFromA2AData(agentCardData)
   }
 
   /**

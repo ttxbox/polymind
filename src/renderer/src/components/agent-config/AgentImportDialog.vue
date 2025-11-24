@@ -33,7 +33,7 @@
                 v-model="importUrl"
                 :placeholder="t('agents.import.dialog.a2aAgentCardPlaceholder')"
                 class="w-full border border-border bg-background text-foreground"
-                @keyup.enter="handleImport"
+                @keyup.enter="canImport && handleImport()"
               />
             </div>
             <Button
@@ -86,7 +86,7 @@
                   {{ t('agents.import.dialog.a2aAgentNameLabel') }}
                 </div>
                 <p class="leading-relaxed text-muted-foreground">
-                  {{ a2aPreview.agentCard.name }}
+                  {{ a2aPreview.name }}
                 </p>
               </div>
               <div class="space-y-1">
@@ -94,7 +94,7 @@
                   {{ t('agents.import.dialog.a2aAgentDescriptionLabel') }}
                 </div>
                 <p class="leading-relaxed text-muted-foreground">
-                  {{ a2aPreview.agentCard.description || '--' }}
+                  {{ a2aPreview.description || '--' }}
                 </p>
               </div>
               <div class="space-y-1">
@@ -102,7 +102,7 @@
                   {{ t('agents.import.dialog.a2aEndpointLabel') }}
                 </div>
                 <p class="leading-relaxed text-muted-foreground break-all">
-                  {{ a2aPreview.baseUrl }}
+                  {{ a2aPreview.url }}
                 </p>
               </div>
               <div class="space-y-1">
@@ -110,7 +110,7 @@
                   {{ t('agents.import.dialog.a2aExpandableLabel') }}
                 </div>
                 <p class="leading-relaxed text-muted-foreground">
-                  {{ (a2aPreview.agentCard.skills?.length || 0) > 0 ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
+                  {{ (a2aPreview.skills?.length || 0) > 0 ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
                 </p>
               </div>
               <div class="space-y-1">
@@ -118,7 +118,7 @@
                   {{ t('agents.import.dialog.a2aStreamingLabel') }}
                 </div>
                 <p class="leading-relaxed text-muted-foreground">
-                  {{ a2aPreview.agentCard.streamingSupported ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
+                  {{ a2aPreview.streamingSupported ? t('agents.import.dialog.a2aYes') : t('agents.import.dialog.a2aNo') }}
                 </p>
               </div>
             </div>
@@ -127,11 +127,11 @@
               {{ t('agents.import.dialog.a2aSkillsLabel') }}
             </div>
             <div
-              v-if="a2aPreview.agentCard.skills?.length"
+              v-if="a2aPreview.skills?.length"
               class="space-y-3"
             >
               <div
-                v-for="skill in a2aPreview.agentCard.skills"
+                v-for="skill in a2aPreview.skills"
                 :key="skill.name"
                 class="rounded-xl border border-border/60 bg-card/80"
               >
@@ -196,7 +196,7 @@
         </Button>
         <Button
           @click="handleImport"
-          :disabled="isImporting || !importUrl.trim()"
+          :disabled="!canImport"
           class="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Icon v-if="isImporting" icon="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
@@ -208,7 +208,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/components/ui/toast/use-toast'
@@ -241,41 +241,18 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-interface A2AServerEntry {
-  baseUrl: string
-  cardUrl: string
-  agentCard: AgentCardData
-}
-
 const importUrl = ref('')
 const isImporting = ref(false)
 const isParsingA2AServer = ref(false)
-const a2aPreview = ref<A2AServerEntry | null>(null)
+const a2aPreview = ref<AgentCardData | null>(null)
 const expandedSkillMap = ref<Record<string, boolean>>({})
 const a2aServerPresenter = usePresenter('a2aPresenter')
+const canImport = computed(() => {
+  const hasUrl = importUrl.value.trim().length > 0
+  return Boolean(a2aPreview.value) && hasUrl && !isImporting.value && !isParsingA2AServer.value
+})
 
 const AGENT_CARD_SUFFIX = '/.well-known/agent-card.json'
-
-// 校验URL是否合法
-const validateUrl = (url: string): { isValid: boolean; error?: string } => {
-  const trimmedUrl = url.trim()
-  
-  if (!trimmedUrl) {
-    return { isValid: false, error: 'invalidUrl' }
-  }
-
-  try {
-    const urlObj = new URL(trimmedUrl)
-    // 检查协议是否为http或https
-    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
-      return { isValid: false, error: 'invalidUrlFormat' }
-    }
-    return { isValid: true }
-  } catch {
-    return { isValid: false, error: 'invalidUrlFormat' }
-  }
-}
-
 
 const normalizeA2AServerUrls = (input: string) => {
   const trimmed = input.trim()
@@ -306,7 +283,7 @@ const clearA2APreview = async () => {
     return
   }
   try {
-    await a2aServerPresenter.removeA2AServer(pendingPreview.baseUrl)
+    await a2aServerPresenter.removeA2AServer(pendingPreview.url)
   } catch (error) {
     console.warn('Failed to remove temporary A2A server:', error)
   }
@@ -329,22 +306,22 @@ const parseA2AAgentCard = async () => {
     isParsingA2AServer.value = true
     await clearA2APreview()
 
-    const agentCardData = await a2aServerPresenter.addA2AServer(baseUrl)
-    if (!agentCardData) {
-      throw new Error('Failed to fetch agent card')
+    const agentCardData = await a2aServerPresenter.fetchAgentCard(baseUrl)
+   
+    if (agentCardData && (agentCardData as any).errorCode) {
+      const msg = (agentCardData as any).errorMsg || "Failed to fetch agent card"
+      throw new Error(msg)
     }
 
     importUrl.value = cardUrl
-    a2aPreview.value = {
-      baseUrl,
-      cardUrl,
-      agentCard: agentCardData
-    }
+    // Narrow the union type: we've already handled the error shape above,
+    // so it's safe to treat the result as AgentCardData for runtime and typing.
+    const card = agentCardData as AgentCardData
+    a2aPreview.value = card
     expandedSkillMap.value = {}
-
     toast({
       title: t('agents.import.dialog.a2aParseSuccess'),
-      description: agentCardData.name,
+      description: card.name,
       duration: 600
     })
   } catch (error) {
@@ -377,31 +354,26 @@ watch(() => props.showDialog, (newVal) => {
 
 // 导入智能体
 const handleImport = async () => {
-  const validation = validateUrl(importUrl.value)
-  
-  if (!validation.isValid) {
-    toast({
-      title: t('agents.import.error.title'),
-      description: t(`agents.import.error.${validation.error}`),
-      variant: 'destructive',
-      duration: 5000
-    })
+  if (isParsingA2AServer.value || !a2aPreview.value) {
     return
   }
-
+  const { baseUrl } = normalizeA2AServerUrls(importUrl.value)
   isImporting.value = true
 
   try {
-    const configPresenter = usePresenter('configPresenter')
-    
     // 调用后端导入方法获取agent数据
-    const agent = await configPresenter.importAgentFromUrl(importUrl.value.trim())
+    const agentCardData = await a2aServerPresenter.addA2AServer(baseUrl)
+    if (agentCardData && (agentCardData as any).errorCode) {
+      const msg = (agentCardData as any).errorMsg || "Failed to import agent"
+      throw new Error(msg)
+    }
+
     await clearA2APreview()
     
     // 显示成功消息
     toast({
       title: t('agents.import.success.title'),
-      description: t('agents.import.success.description', { name: agent.name }),
+      description: t('agents.import.success.description', { name: (agentCardData as AgentCardData).name }),
       variant: 'default',
       duration: 3000
     })
