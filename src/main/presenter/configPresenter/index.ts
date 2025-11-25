@@ -127,7 +127,7 @@ export class ConfigPresenter implements IConfigPresenter {
         lastSyncTime: 0,
         soundEnabled: false,
         copyWithCotEnabled: true,
-        useBuiltInTools: false,
+        useBuiltInToolsEnabled: false,
         loggingEnabled: false,
         floatingButtonEnabled: false,
         default_system_prompt: '',
@@ -987,13 +987,13 @@ export class ConfigPresenter implements IConfigPresenter {
     eventBus.sendToRenderer(CONFIG_EVENTS.COPY_WITH_COT_CHANGED, SendTarget.ALL_WINDOWS, enabled)
   }
 
-  getUseBuiltInTools(): boolean {
-    const value = this.getSetting<boolean>('useBuiltInTools')
+  getUseBuiltInToolsEnabled(): boolean {
+    const value = this.getSetting<boolean>('useBuiltInToolsEnabled')
     return value === undefined || value === null ? false : value
   }
 
-  setUseBuiltInTools(enabled: boolean): void {
-    this.setSetting('useBuiltInTools', enabled)
+  setUseBuiltInToolsEnabled(enabled: boolean): void {
+    this.setSetting('useBuiltInToolsEnabled', enabled)
   }
 
   // Get floating button switch status
@@ -1281,8 +1281,8 @@ export class ConfigPresenter implements IConfigPresenter {
         }
       }
     }
-    const useBuiltInTools = this.getUseBuiltInTools()
-    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInTools, roleDefinition)
+    const useBuiltInToolsEnabled = this.getUseBuiltInToolsEnabled()
+    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInToolsEnabled, roleDefinition)
   }
 
   async getSystemPrompts(): Promise<SystemPrompt[]> {

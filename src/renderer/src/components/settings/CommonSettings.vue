@@ -228,7 +228,7 @@
         <div class="flex-shrink-0">
           <Switch
             id="built-in-tools-switch"
-            :checked="builtInToolsEnabled"
+            :checked="usebuiltInToolsEnabled"
             @update:checked="handleBuiltInToolsChange"
           />
         </div>
@@ -812,18 +812,18 @@ const handleSoundChange = (value: boolean) => {
 }
 
 // 内置工具开关相关
-const builtInToolsEnabled = computed({
+const usebuiltInToolsEnabled = computed({
   get: () => {
-    return settingsStore.useBuiltInTools
+    return settingsStore.useBuiltInToolsEnabled
   },
   set: (value: boolean) => {
-    settingsStore.setUseBuiltInTools(value)
+    settingsStore.setUseBuiltInToolsEnabled(value)
   }
 })
 
 // 处理内置工具开关状态变更
 const handleBuiltInToolsChange = (value: boolean) => {
-  settingsStore.setUseBuiltInTools(value)
+  settingsStore.setUseBuiltInToolsEnabled(value)
 }
 
 const copyWithCotEnabled = computed({

@@ -5,8 +5,6 @@ import {
   getSystemInfoSection,
   getObjectiveSection,
   getSharedToolUseSection,
-  getToolUseGuidelinesSection,
-  getToolDescriptionsSection,
   addCustomInstructions,
   markdownFormattingSection
 } from './sections'
@@ -29,7 +27,7 @@ async function generatePrompt(
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools?: boolean,
+  useBuiltInToolsEnabled?: boolean,
   roleDefinition?: string
 ): Promise<string> {
   const promptSections: string[] = []
@@ -38,12 +36,9 @@ async function generatePrompt(
   }
   promptSections.push(markdownFormattingSection())
 
-  if (useBuiltInTools) {
-    promptSections.push(`${getSharedToolUseSection()}
-
-		${getToolDescriptionsSection()}
-
-		${getToolUseGuidelinesSection()}`)
+  if (useBuiltInToolsEnabled) {
+    const toolsXML = await presenter.builtInToolsPresenter.convertToolsToXml(useBuiltInToolsEnabled)
+    promptSections.push(`${getSharedToolUseSection(toolsXML)}`)
   }
 
   promptSections.push(getSystemInfoSection(), getObjectiveSection())
@@ -76,7 +71,7 @@ export const SYSTEM_PROMPT = async (
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools?: boolean,
+  useBuiltInToolsEnabled?: boolean,
   roleDefinition?: string
 ): Promise<string> => {
   return generatePrompt(
@@ -84,7 +79,7 @@ export const SYSTEM_PROMPT = async (
     globalCustomInstructions,
     language,
     IgnoreInstructions,
-    useBuiltInTools,
+    useBuiltInToolsEnabled,
     roleDefinition
   )
 }
