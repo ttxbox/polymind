@@ -4,17 +4,20 @@ import { BuiltInToolDefinition, BuiltInToolResponse, buildRawData } from './base
 
 export const listFilesTool: BuiltInToolDefinition = {
   name: 'list_files',
-  description: 'List files and directories in the specified directory',
+  description:
+    'equests to list the names of files and subdirectories in a specified directory. Use this tool when you need to understand the directory structure or confirm the existence of files. By default, it only lists the current level, recursion can be enabled if necessary.',
   parameters: {
     type: 'object',
     properties: {
       directory_path: {
         type: 'string',
-        description: 'Directory path to list content'
+        description:
+          'The path of the directory to list (When the path is uncertain, confirm with the user).'
       },
       recursive: {
         type: 'boolean',
-        description: 'Whether to recursively list subdirectories',
+        description:
+          'Whether to recursively list subdirectories, boolean type, defaults to false. Set to true only when the complete directory tree is genuinely needed to avoid excessive output.',
         default: false
       }
     },

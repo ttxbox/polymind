@@ -9,7 +9,7 @@ const execAsync = promisify(execCallback)
 export const executeCommandTool: BuiltInToolDefinition = {
   name: 'execute_command',
   description:
-    'Executes a command-line command in the current or specified working directory, and returns standard output and standard error.',
+    "Requests the execution of a command line instruction and returns the standard output and standard error. Use this tool only when needing to run commands related to the system itself; it cannot be used for network requests or accessing external websites. That is, use it only when there is a clear need, and carefully evaluate the potential side effects of the command. You must tailor the command to the user's system and clearly explain its function. For command chaining, use the appropriate chaining syntax for the user's shell. By default, it runs in the current working directory; other directories or shells can be specified as needed.This tool can only be run on the local system where it is installed. When performing operations such as package installation and uninstallation, it is necessary to first determine the correct package management command.",
   parameters: {
     type: 'object',
     properties: {
@@ -20,16 +20,17 @@ export const executeCommandTool: BuiltInToolDefinition = {
       working_directory: {
         type: 'string',
         description:
-          'The working directory to use when executing the command (optional; the current process directory is the default).'
+          'The directory to use when executing the command. When the path is necessary, confirm with the user.'
       },
       timeout: {
         type: 'number',
-        description: 'Maximum time the command is allowed to run (milliseconds, default 30000)。'
+        description:
+          'The maximum allowed runtime for the command in milliseconds, number type. Leave empty for the default of 30000.'
       },
       shell: {
         type: 'string',
         description:
-          'The shell to use to execute the command (optional; if left blank, the system default is used)。'
+          'The shell used to execute the command, eg \`powershell.exe\`?\`bash\`, Leave empty to use the system default.?'
       }
     },
     required: ['command']
