@@ -29,9 +29,14 @@ async function generatePrompt(
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools?: boolean
+  useBuiltInTools?: boolean,
+  roleDefinition?: string
 ): Promise<string> {
-  const promptSections = [markdownFormattingSection()]
+  const promptSections: string[] = []
+  if (roleDefinition) {
+    promptSections.push(roleDefinition)
+  }
+  promptSections.push(markdownFormattingSection())
 
   if (useBuiltInTools) {
     promptSections.push(`${getSharedToolUseSection()}
@@ -71,13 +76,15 @@ export const SYSTEM_PROMPT = async (
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInTools?: boolean
+  useBuiltInTools?: boolean,
+  roleDefinition?: string
 ): Promise<string> => {
   return generatePrompt(
     cwd,
     globalCustomInstructions,
     language,
     IgnoreInstructions,
-    useBuiltInTools
+    useBuiltInTools,
+    roleDefinition
   )
 }

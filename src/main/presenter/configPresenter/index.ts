@@ -1249,8 +1249,8 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   // 获取默认系统提示词
-  async getDefaultSystemPrompt(): Promise<string> {
-    const default_system_prompt = await this.getBuildInSystemPrompt()
+  async getDefaultSystemPrompt(agent?: Agent): Promise<string> {
+    const default_system_prompt = await this.getBuildInSystemPrompt(agent)
     return default_system_prompt
   }
 
@@ -1269,10 +1269,20 @@ export class ConfigPresenter implements IConfigPresenter {
     this.setSetting('default_system_prompt', '')
   }
 
-  private async getBuildInSystemPrompt(): Promise<string> {
+  private async getBuildInSystemPrompt(agent?: Agent): Promise<string> {
     // 获取内置的系统提示词
+    let roleDefinition = ''
+    if (agent) {
+      roleDefinition += `Your name is ${agent.name},${agent.description}.`
+      if (agent.skills.length > 0) {
+        roleDefinition += `You have the following skills:\n`
+        for (const skill of agent.skills || []) {
+          roleDefinition += `- ${skill.name}=>${skill.description}\n`
+        }
+      }
+    }
     const useBuiltInTools = this.getUseBuiltInTools()
-    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInTools)
+    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInTools, roleDefinition)
   }
 
   async getSystemPrompts(): Promise<SystemPrompt[]> {
