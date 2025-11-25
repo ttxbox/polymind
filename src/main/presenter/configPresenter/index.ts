@@ -127,7 +127,7 @@ export class ConfigPresenter implements IConfigPresenter {
         lastSyncTime: 0,
         soundEnabled: false,
         copyWithCotEnabled: true,
-        useBuiltInToolsEnabled: false,
+        useBuiltInToolsEnabled: true,
         loggingEnabled: false,
         floatingButtonEnabled: false,
         default_system_prompt: '',

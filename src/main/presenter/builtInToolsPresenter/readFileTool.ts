@@ -4,13 +4,15 @@ import { BuiltInToolDefinition, BuiltInToolResponse, buildRawData } from './base
 
 export const readFileTool: BuiltInToolDefinition = {
   name: 'read_file',
-  description: 'Read the contents of a file at a specified path',
+  description:
+    'Requests to read the content of a file at a specified path. Use this tool when you need to inspect an existing file whose content you are unaware of, such as analyzing code, viewing a text file, or extracting information from a configuration file.The output content will have line numbers prefixed to each line (e.g., "1 | const x = 1"), making it easier to reference specific lines when creating diffs or discussing code. It can automatically extract raw text from PDF and DOCX files. It might not work for other types of binary files as it returns the raw content as a string.',
   parameters: {
     type: 'object',
     properties: {
       file_path: {
         type: 'string',
-        description: 'The path to the file to read, either absolute or relative'
+        description:
+          'The path of the file to read (When the path is uncertain, confirm with the user).'
       },
       encoding: {
         type: 'string',
@@ -77,7 +79,7 @@ export async function executeReadFileTool(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    const failureMessage = `读取文件失败: ${errorMessage}`
+    const failureMessage = `Read file failures: ${errorMessage}`
     const metadata = { error: errorMessage }
     return {
       toolCallId,

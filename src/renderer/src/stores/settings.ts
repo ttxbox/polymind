@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const searchPreviewEnabled = ref<boolean>(true) // 搜索预览是否启用，默认启用
   const contentProtectionEnabled = ref<boolean>(true) // 投屏保护是否启用，默认启用
   const copyWithCotEnabled = ref<boolean>(true)
-  const useBuiltInToolsEnabled = ref<boolean>(false) // 内置工具是否启用，默认不启用
+  const useBuiltInToolsEnabled = ref<boolean>(true) // 内置工具是否启用，默认启用
   const notificationsEnabled = ref<boolean>(true) // 系统通知是否启用，默认启用
   const fontSizeLevel = ref<number>(DEFAULT_FONT_SIZE_LEVEL) // 字体大小级别，默认为 1
   // Ollama 相关状态
