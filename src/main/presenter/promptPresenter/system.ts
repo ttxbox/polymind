@@ -32,7 +32,8 @@ async function generatePrompt(
   const promptSections = [markdownFormattingSection()]
 
   if (useBuiltInToolsEnabled) {
-    promptSections.push(`${getSharedToolUseSection()}`)
+    const toolsXML = await presenter.builtInToolsPresenter.convertToolsToXml(useBuiltInToolsEnabled)
+    promptSections.push(`${getSharedToolUseSection(toolsXML)}`)
   }
 
   promptSections.push(getSystemInfoSection(), getObjectiveSection())

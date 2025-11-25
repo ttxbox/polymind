@@ -1117,6 +1117,7 @@ export interface ProgressResponse {
 
 //
 export interface IBuiltInToolsPresenter {
+  convertToolsToXml(useBuiltInToolsEnabled: boolean): any
   getBuiltInToolDefinitions(enabled?: boolean): any
 
   /**

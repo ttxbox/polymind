@@ -148,6 +148,38 @@ export class BuiltInToolsPresenter {
     }
   }
 
+  /**
+   * 将 MCPToolDefinition 转换为 XML 格式
+   * @returns XML 格式的工具定义字符串
+   */
+  async convertToolsToXml(enabled: boolean = true): Promise<string> {
+    const tools = await this.getBuiltInToolDefinitions(enabled)
+    const xmlTools = tools
+      .map((tool) => {
+        const { name, description, parameters } = tool.function
+        const { properties, required = [] } = parameters
+
+        const paramsXml = Object.entries(properties)
+          .map(([paramName, paramDef]) => {
+            const requiredAttr = required.includes(paramName) ? ' required="true"' : ''
+            const descriptionAttr = paramDef.description
+              ? ` description="${paramDef.description}"`
+              : ''
+            const typeAttr = paramDef.type ? ` type="${paramDef.type}"` : ''
+
+            return `<parameter name="${paramName}"${requiredAttr}${descriptionAttr}${typeAttr}></parameter>`
+          })
+          .join('\n    ')
+
+        return `<tool name="${name}" description="${description}">
+    ${paramsXml}
+</tool>`
+      })
+      .join('\n\n')
+
+    return xmlTools
+  }
+
   private mapToolToDefinition(tool: Tool): MCPToolDefinition {
     const schema = (tool.inputSchema || {}) as {
       type?: string
