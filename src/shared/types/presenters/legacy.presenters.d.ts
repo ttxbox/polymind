@@ -526,7 +526,12 @@ export interface IConfigPresenter {
   installAgent(agentId: string): Promise<boolean>
   uninstallAgent(agentId: string): Promise<boolean>
   getAgentInstallStatus(agentId: string): Promise<boolean>
-  importAgentFromUrl(url: string): Promise<Agent>
+  importAgentFromA2AData(agentCardData: AgentCardData): Promise<Agent>
+  exportAgents(typeFilterCondition?: string): Promise<{
+    agents: Agent[]
+    installedAgents: string[]
+    lastUpdateTime: number
+  }>
 }
 export type RENDERER_MODEL_META = {
   id: string
@@ -712,6 +717,8 @@ export interface AgentCardData {
   url: string
   streamingSupported: boolean
   skills: AgentSkillDescription[]
+  version: string
+  provider?: AgentProvider
   iconUrl?: string
 }
 
@@ -729,6 +736,11 @@ export interface A2AMessageSendParams {
   kind: 'message'
   role: 'user'
   parts: A2APart[]
+}
+
+export interface A2AerrorResponse {
+  errorCode: '-1'
+  errorMsg: string
 }
 /**
  * Unified response data format for A2A interactions
@@ -819,13 +831,14 @@ export interface IA2APresenter {
   // Server management
   getA2AClient(serverURL: string): Promise<A2AClientData | undefined>
   removeA2AServer(serverId: string): Promise<boolean>
-  addA2AServer(serverURL: string): Promise<AgentCardData | undefined>
+  addA2AServer(serverURL: string): Promise<AgentCardData | A2AerrorResponse>
   sendMessage(
     serverId: string,
     params: A2AMessageSendParams
   ): Promise<A2AServerResponse | AsyncGenerator<A2AServerResponse>>
   // Server lifecycle
   isServerRunning(serverId: string): Promise<boolean>
+  fetchAgentCard(serverURL: string): Promise<AgentCardData | A2AerrorResponse>
 }
 
 export type CONVERSATION_SETTINGS = {
@@ -2080,11 +2093,13 @@ export interface Agent {
   description: string
   icon: string
   category: string
+  type: 'A2A' | 'local'
   installed: boolean
   version: string
   provider?: AgentProvider
   skills: Skill[]
   mcpServers: string[]
+  a2aURL?: string
   config?: Record<string, any>
 }
 

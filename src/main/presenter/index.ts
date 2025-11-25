@@ -105,7 +105,7 @@ export class Presenter implements IPresenter {
       this.llmproviderPresenter,
       this.configPresenter
     )
-    this.a2aPresenter = new A2APresenter()
+    this.a2aPresenter = new A2APresenter(this.configPresenter)
     this.mcpPresenter = new McpPresenter(this.configPresenter)
     this.upgradePresenter = new UpgradePresenter(this.configPresenter)
     this.shortcutPresenter = new ShortcutPresenter(this.configPresenter)
