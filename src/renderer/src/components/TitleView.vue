@@ -106,7 +106,7 @@ import ScrollablePopover from './ScrollablePopover.vue'
 import ChatConfig from './ChatConfig.vue'
 import ModelSelect from './ModelSelect.vue'
 import ModelIcon from './icons/ModelIcon.vue'
-import { MODEL_META } from '@shared/presenter'
+import { Agent, MODEL_META } from '@shared/presenter'
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { usePresenter } from '@/composables/usePresenter'
@@ -138,6 +138,16 @@ const searchStrategy = ref(chatStore.chatConfig.searchStrategy)
 const reasoningEffort = ref(chatStore.chatConfig.reasoningEffort)
 const verbosity = ref(chatStore.chatConfig.verbosity)
 const modelType = ref(ModelType.Chat)
+// Pinia 解包后直接返回值，保持 watch 能正确触发
+const selectedAgent = computed(() => chatStore.selectedAgent || null)
+const loadSystemPrompt = async (agent?: Agent | null) => {
+  try {
+    const prompt = await configPresenter.getDefaultSystemPrompt(agent || undefined)
+    systemPrompt.value = prompt
+  } catch (error) {
+    console.error('[TitleView] Failed to load system prompt', error)
+  }
+}
 // 获取模型配置来初始化默认值并智能调整当前参数
 const loadModelConfig = async () => {
   const modelId = chatStore.chatConfig.modelId
@@ -407,6 +417,14 @@ watch(
     }
   },
   { deep: true }
+)
+
+watch(
+  selectedAgent,
+  (agent) => {
+    loadSystemPrompt(agent)
+  },
+  { immediate: true }
 )
 
 type Model = {

@@ -476,7 +476,7 @@ export interface IConfigPresenter {
   updateCustomPrompt(promptId: string, updates: Partial<Prompt>): Promise<void>
   deleteCustomPrompt(promptId: string): Promise<void>
   // Default system prompt settings
-  getDefaultSystemPrompt(): Promise<string>
+  getDefaultSystemPrompt(agent?: Agent): Promise<string>
   setDefaultSystemPrompt(prompt: string): Promise<void>
   resetToDefaultPrompt(): Promise<void>
   clearSystemPrompt(): Promise<void>
@@ -521,6 +521,7 @@ export interface IConfigPresenter {
 
   // Agent management methods
   getAgents(): Promise<Agent[]>
+  getInstalledAgents(): Promise<Agent[]>
   setAgents(agents: Agent[]): Promise<void>
   addAgent(agent: Agent): Promise<void>
   installAgent(agentId: string): Promise<boolean>
