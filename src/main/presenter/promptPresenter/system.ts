@@ -27,9 +27,14 @@ async function generatePrompt(
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInToolsEnabled?: boolean
+  useBuiltInToolsEnabled?: boolean,
+  roleDefinition?: string
 ): Promise<string> {
-  const promptSections = [markdownFormattingSection()]
+  const promptSections: string[] = []
+  if (roleDefinition) {
+    promptSections.push(roleDefinition)
+  }
+  promptSections.push(markdownFormattingSection())
 
   if (useBuiltInToolsEnabled) {
     const toolsXML = await presenter.builtInToolsPresenter.convertToolsToXml(useBuiltInToolsEnabled)
@@ -66,13 +71,15 @@ export const SYSTEM_PROMPT = async (
   globalCustomInstructions?: string,
   language?: string,
   IgnoreInstructions?: string,
-  useBuiltInToolsEnabled?: boolean
+  useBuiltInToolsEnabled?: boolean,
+  roleDefinition?: string
 ): Promise<string> => {
   return generatePrompt(
     cwd,
     globalCustomInstructions,
     language,
     IgnoreInstructions,
-    useBuiltInToolsEnabled
+    useBuiltInToolsEnabled,
+    roleDefinition
   )
 }

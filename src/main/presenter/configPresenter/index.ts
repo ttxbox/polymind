@@ -10,7 +10,8 @@ import {
   SystemPrompt,
   IModelConfig,
   BuiltinKnowledgeConfig,
-  Agent
+  Agent,
+  AgentCardData
 } from '@shared/presenter'
 import {
   ProviderChange,
@@ -1248,8 +1249,8 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   // 获取默认系统提示词
-  async getDefaultSystemPrompt(): Promise<string> {
-    const default_system_prompt = await this.getBuildInSystemPrompt()
+  async getDefaultSystemPrompt(agent?: Agent): Promise<string> {
+    const default_system_prompt = await this.getBuildInSystemPrompt(agent)
     return default_system_prompt
   }
 
@@ -1268,10 +1269,20 @@ export class ConfigPresenter implements IConfigPresenter {
     this.setSetting('default_system_prompt', '')
   }
 
-  private async getBuildInSystemPrompt(): Promise<string> {
+  private async getBuildInSystemPrompt(agent?: Agent): Promise<string> {
     // 获取内置的系统提示词
+    let roleDefinition = ''
+    if (agent) {
+      roleDefinition += `Your name is ${agent.name},${agent.description}.`
+      if (agent.skills.length > 0) {
+        roleDefinition += `You have the following skills:\n`
+        for (const skill of agent.skills || []) {
+          roleDefinition += `- ${skill.name}=>${skill.description}\n`
+        }
+      }
+    }
     const useBuiltInToolsEnabled = this.getUseBuiltInToolsEnabled()
-    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInToolsEnabled)
+    return await SYSTEM_PROMPT('', '', this.getLanguage(), '', useBuiltInToolsEnabled, roleDefinition)
   }
 
   async getSystemPrompts(): Promise<SystemPrompt[]> {
@@ -1559,11 +1570,14 @@ export class ConfigPresenter implements IConfigPresenter {
   /**
    * 导出智能体数据
    */
-  async exportAgents(): Promise<{
+  async exportAgents(typeFilterCondition?: string): Promise<{
     agents: Agent[]
     installedAgents: string[]
     lastUpdateTime: number
   }> {
+    if (typeFilterCondition) {
+      return this.agentConfHelper.exportAgents(typeFilterCondition)
+    }
     return this.agentConfHelper.exportAgents()
   }
 
@@ -1575,10 +1589,10 @@ export class ConfigPresenter implements IConfigPresenter {
   }
 
   /**
-   * 从URL导入智能体配置
+   * 从A2A AgentCard Data导入智能体配置
    */
-  async importAgentFromUrl(url: string): Promise<Agent> {
-    return this.agentConfHelper.importAgentFromUrl(url)
+  async importAgentFromA2AData(agentCardData: AgentCardData): Promise<Agent> {
+    return this.agentConfHelper.importAgentFromA2AData(agentCardData)
   }
 
   /**

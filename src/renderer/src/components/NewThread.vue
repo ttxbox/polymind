@@ -140,7 +140,7 @@ import { Badge } from '@/components/ui/badge'
 import { Icon } from '@iconify/vue'
 import ModelSelect from './ModelSelect.vue'
 import { useChatStore } from '@/stores/chat'
-import { MODEL_META } from '@shared/presenter'
+import { Agent, MODEL_META } from '@shared/presenter'
 import { useSettingsStore } from '@/stores/settings'
 import { computed, nextTick, ref, watch, onMounted } from 'vue'
 import { UserMessageContent } from '@shared/chat'
@@ -164,8 +164,8 @@ const { t } = useI18n()
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
 
-// 使用全局状态中的选中智能体
-const selectedAgent = computed(() => chatStore.selectedAgent)
+// 使用全局状态中的选中智能体（Pinia 会自动解包 ref，这里直接返回值）
+const selectedAgent = computed(() => chatStore.selectedAgent || null)
 const activeModel = ref({
   name: '',
   id: '',
@@ -193,6 +193,15 @@ const forcedSearch = ref<boolean | undefined>(undefined)
 const searchStrategy = ref<'turbo' | 'max' | undefined>(undefined)
 const reasoningEffort = ref<'minimal' | 'low' | 'medium' | 'high' | undefined>(undefined)
 const verbosity = ref<'low' | 'medium' | 'high' | undefined>(undefined)
+//动态加载系统提示词
+const loadSystemPrompt = async (agent?: Agent | null) => {
+  try {
+    const prompt = await configPresenter.getDefaultSystemPrompt(agent || undefined)
+    systemPrompt.value = prompt
+  } catch (error) {
+    console.error('[NewThread] Failed to load system prompt', error)
+  }
+}
 
 const name = computed(() => {
   return activeModel.value?.name ? activeModel.value.name.split('/').pop() : ''
@@ -409,9 +418,6 @@ watch(
 
 onMounted(async () => {
   const groupElement = document.querySelector('.new-thread-model-select')
-  configPresenter.getDefaultSystemPrompt().then((prompt) => {
-    systemPrompt.value = prompt
-  })
   if (groupElement) {
     useEventListener(groupElement, 'mouseenter', handleMouseEnter)
     useEventListener(groupElement, 'mouseleave', handleMouseLeave)
@@ -437,6 +443,14 @@ watch(
     if (value) {
       showSettingsButton.value = true
     }
+  },
+  { immediate: true }
+)
+
+watch(
+  selectedAgent,
+  (agent) => {
+    loadSystemPrompt(agent)
   },
   { immediate: true }
 )

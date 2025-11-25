@@ -1,116 +1,102 @@
-/**
- * A2A Presenter Implementation
- * Main interface exposing all A2A operations and integrating with the existing system
- */
-
-import { serverManager } from './serverManager'
-import type { MessageSendParams, AgentCard } from '@a2a-js/sdk'
-
-// Local interfaces for presenter API
-export interface TaskQueryParams {
-  taskId: string
-  contextId?: string
-}
-
-export interface TaskIdParams {
-  taskId: string
-}
-import { IA2APresenter } from '@shared/presenter'
-import { A2AClientAction } from './A2AClientAction'
-import { A2AResponseData } from './types'
+import type {
+  A2AClientData,
+  A2AerrorResponse,
+  A2AMessageSendParams,
+  A2AServerResponse,
+  AgentCardData,
+  IA2APresenter,
+  IConfigPresenter
+} from '@shared/presenter'
+import { ServerManager } from './serverManager'
 
 export class A2APresenter implements IA2APresenter {
-  private manager: serverManager
+  private readonly manager: ServerManager
 
-  constructor() {
-    this.manager = new serverManager()
+  constructor(configPresenter: IConfigPresenter) {
+    this.manager = new ServerManager(configPresenter)
   }
 
-  /**
-   * Get all A2A server configurations
-   */
-  async getA2AServers(): Promise<Record<string, A2AClientAction>> {
-    return this.manager.getA2AServers()
-  }
-
-  /**
-   * Add a new A2A server
-   */
-  async addA2AServer(serverID: string): Promise<boolean> {
-    try {
-      // Check if server already exists
-      const existingServers = await this.getA2AServers()
-      if (existingServers[serverID]) {
-        console.error(`[A2A] Failed to add A2A server: Server "${serverID}" already exists.`)
-        return false
+  async getA2AClient(serverURL: string): Promise<A2AClientData | undefined> {
+    const a2aClientAction = await this.manager.getA2AClient(serverURL)
+    if (!a2aClientAction) {
+      return
+    }
+    const agentCard = await a2aClientAction.getAgentCard()
+    const getAgentCardData = () => {
+      return agentCard?.skills.map((agentSkill) => ({
+        name: agentSkill.name,
+        description: agentSkill.description
+      }))
+    }
+    return {
+      isRunning: await this.manager.isA2AServerRunning(serverURL),
+      agentCard: {
+        name: agentCard.name,
+        description: agentCard.description,
+        url: agentCard.url,
+        streamingSupported: agentCard.capabilities?.streaming === true ? true : false,
+        skills: getAgentCardData(),
+        version: agentCard.version,
+        provider: {
+          organization: agentCard.provider?.organization || '',
+          url: agentCard.provider?.url || ''
+        },
+        iconUrl: agentCard.iconUrl
       }
-
-      this.manager.addA2AServer(serverID)
-      console.log(`[A2A] Added server: ${serverID}`)
-      return true
-    } catch (error) {
-      console.error(`[A2A] Failed to add server ${serverID}:`, error)
-      throw error
     }
   }
-  /**
-   * Remove an A2A server
-   */
-  async removeA2AServer(serverID: string): Promise<void> {
+
+  async addA2AServer(serverURL: string): Promise<AgentCardData | A2AerrorResponse> {
     try {
-      this.manager.removeA2AServer(serverID)
-      console.log(`[A2A] Removed server: ${serverID}`)
+      return await this.manager.addA2AServer(serverURL)
     } catch (error) {
-      console.error(`[A2A] Failed to remove server ${serverID}:`, error)
-      throw error
+      console.error(`[A2A] Failed to add server ${serverURL}`)
+      return {
+        errorCode: '-1',
+        errorMsg: (error as Error).message
+      }
     }
   }
 
-  /**
-   * Check if a server is running
-   */
-  async isServerRunning(serverID: string): Promise<boolean> {
-    return await this.manager.isA2AServerRunning(serverID)
+  async fetchAgentCard(serverURL: string): Promise<AgentCardData | A2AerrorResponse> {
+    try {
+      return await this.manager.fetchAgentCard(serverURL)
+    } catch (error) {
+      console.error(`${(error as Error).message}`)
+      return {
+        errorCode: '-1',
+        errorMsg: (error as Error).message
+      }
+    }
   }
 
-  /**
-   * Send a message to an A2A server
-   */
+  async removeA2AServer(serverURL: string): Promise<boolean> {
+    try {
+      return await this.manager.removeA2AServer(serverURL)
+    } catch (error) {
+      console.error(`[A2A] Failed to remove server ${serverURL}:`, error)
+      return false
+    }
+  }
+
   async sendMessage(
-    serverID: string,
-    params: MessageSendParams
-  ): Promise<A2AResponseData | AsyncGenerator<A2AResponseData>> {
-    const client = this.manager.getA2AClient(serverID)
-    if (!client) {
-      throw new Error(`A2A server '${serverID}' is not running`)
+    serverURL: string,
+    params: A2AMessageSendParams
+  ): Promise<A2AServerResponse | AsyncGenerator<A2AServerResponse>> {
+    const a2aClientAction = await this.manager.getA2AClient(serverURL)
+    if (!a2aClientAction) {
+      throw new Error(`A2A server '${serverURL}' is not running`)
     }
-    const agentCard = await client.getAgentCard()
+    const agentCard = await a2aClientAction.getAgentCard()
     const isStreaming = agentCard.capabilities?.streaming === true
     if (isStreaming) {
-      return client.sendStreamingMessage(params)
+      return a2aClientAction.sendStreamingMessage(params)
     } else {
-      return client.sendMessage(params)
+      return a2aClientAction.sendMessage(params)
     }
-  }
-  /**
-   * Cancel a task
-   */
-  async cancelTask(serverID: string, taskID: string): Promise<void> {
-    const client = this.manager.getA2AClient(serverID)
-    if (!client) {
-      throw new Error(`A2A server '${serverID}' is not running`)
-    }
-    await client.cancelTask(taskID)
   }
 
-  /**
-   * Get agent card for a server
-   */
-  async getAgentCard(serverName: string): Promise<AgentCard> {
-    const client = this.manager.getA2AClient(serverName)
-    if (!client) {
-      throw new Error(`A2A server '${serverName}' is not running`)
-    }
-    return await client.getAgentCard()
+  async isServerRunning(serverURL: string): Promise<boolean> {
+    return this.manager.isA2AServerRunning(serverURL)
   }
 }

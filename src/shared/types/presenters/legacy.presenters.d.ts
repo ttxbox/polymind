@@ -361,6 +361,7 @@ export interface IPresenter {
   oauthPresenter: IOAuthPresenter
   dialogPresenter: IDialogPresenter
   knowledgePresenter: IKnowledgePresenter
+  a2aPresenter: IA2APresenter
   init(): void
   destroy(): void
 }
@@ -475,7 +476,7 @@ export interface IConfigPresenter {
   updateCustomPrompt(promptId: string, updates: Partial<Prompt>): Promise<void>
   deleteCustomPrompt(promptId: string): Promise<void>
   // Default system prompt settings
-  getDefaultSystemPrompt(): Promise<string>
+  getDefaultSystemPrompt(agent?: Agent): Promise<string>
   setDefaultSystemPrompt(prompt: string): Promise<void>
   resetToDefaultPrompt(): Promise<void>
   clearSystemPrompt(): Promise<void>
@@ -520,12 +521,18 @@ export interface IConfigPresenter {
 
   // Agent management methods
   getAgents(): Promise<Agent[]>
+  getInstalledAgents(): Promise<Agent[]>
   setAgents(agents: Agent[]): Promise<void>
   addAgent(agent: Agent): Promise<void>
   installAgent(agentId: string): Promise<boolean>
   uninstallAgent(agentId: string): Promise<boolean>
   getAgentInstallStatus(agentId: string): Promise<boolean>
-  importAgentFromUrl(url: string): Promise<Agent>
+  importAgentFromA2AData(agentCardData: AgentCardData): Promise<Agent>
+  exportAgents(typeFilterCondition?: string): Promise<{
+    agents: Agent[]
+    installedAgents: string[]
+    lastUpdateTime: number
+  }>
 }
 export type RENDERER_MODEL_META = {
   id: string
@@ -705,21 +712,134 @@ export interface ILlmProviderPresenter {
   ): Promise<string>
 }
 
+export interface AgentCardData {
+  name: string
+  description: string
+  url: string
+  streamingSupported: boolean
+  skills: AgentSkillDescription[]
+  version: string
+  provider?: AgentProvider
+  iconUrl?: string
+}
+
+export interface AgentSkillDescription {
+  name: string
+  description: string
+}
+
+export interface A2AClientData {
+  isRunning: boolean
+  agentCard: AgentCardData
+}
+export interface A2AMessageSendParams {
+  messageId: string
+  kind: 'message'
+  role: 'user'
+  parts: A2APart[]
+}
+
+export interface A2AerrorResponse {
+  errorCode: '-1'
+  errorMsg: string
+}
+/**
+ * Unified response data format for A2A interactions
+ * Used for frontend display and event propagation
+ */
+export interface A2AServerResponse {
+  /** Response type discriminator */
+  kind: 'message' | 'task' | 'status-update' | 'artifact-update' | 'error'
+  /** Timestamp when this response was created */
+  /** Name of the A2A server that generated this response */
+  contextId?: string
+  taskId?: string
+
+  /** Message data (when type is 'message') */
+  message?: {
+    parts: A2APart[]
+  }
+
+  /** Task data (when type is 'task') */
+  task?: {
+    status: {
+      state: string // TaskState
+      parts?: A2APart[]
+    }
+    artifacts?: A2AArtifact[]
+  }
+
+  /** Status update data (when type is 'task-status-update') */
+  statusUpdate?: {
+    status: {
+      state: string // TaskState
+      parts?: A2APart[]
+    }
+    final: boolean
+  }
+
+  /** Artifact update data (when type is 'task-artifact-update') */
+  artifactUpdate?: {
+    artifact: A2AArtifact
+    /** If true, the content of this artifact should be appended to a previously sent artifact with the same ID. */
+    append?: boolean
+    /** If true, this is the final chunk of the artifact. */
+    lastChunk?: boolean
+  }
+
+  /** Error data (when type is 'error') */
+  error?: {
+    code: number
+    message: string
+    data?: unknown
+  }
+}
+
+/**
+ * Simplified part representation for frontend consumption
+ */
+export interface A2APart {
+  /** Part type */
+  type: 'text' | 'data' | 'file'
+  /** Text content (for text parts) */
+  text?: string
+  /** Structured data (for data parts) */
+  data?: unknown
+  /** File information (for file parts) */
+  file?: {
+    name?: string
+    mimeType?: string
+    uri?: string
+    bytes?: string // base64 encoded
+  }
+}
+
+/**
+ * Artifact representation for frontend consumption
+ */
+export interface A2AArtifact {
+  /**
+   * An optional, human-readable name for the artifact.
+   */
+  name?: string
+  /**
+   * An array of content parts that make up the artifact.
+   */
+  parts: A2APart[]
+}
+
 export interface IA2APresenter {
   // Server management
-  getA2AServers(): Promise<Record<string, A2AServerConfig>>
-  addA2AServer(name: string, config: A2AServerConfig): Promise<boolean>
-  removeA2AServer(name: string): Promise<void>
-
+  getA2AClient(serverURL: string): Promise<A2AClientData | undefined>
+  removeA2AServer(serverId: string): Promise<boolean>
+  addA2AServer(serverURL: string): Promise<AgentCardData | A2AerrorResponse>
+  sendMessage(
+    serverId: string,
+    params: A2AMessageSendParams
+  ): Promise<A2AServerResponse | AsyncGenerator<A2AServerResponse>>
   // Server lifecycle
-  isServerRunning(name: string): Promise<boolean>
-
-  // Task operations
-  // sendMessage(serverName: string, params: MessageSendParams): Promise<Task>
-  cancelTask(serverName: string, params: TaskIdParams): Promise<void>
-
-  // Agent information
-  getAgentCard(serverName: string): Promise<AgentCard>
+  isServerRunning(serverId: string): Promise<boolean>
+  fetchAgentCard(serverURL: string): Promise<AgentCardData | A2AerrorResponse>
 }
 
 export type CONVERSATION_SETTINGS = {
@@ -1982,11 +2102,13 @@ export interface Agent {
   description: string
   icon: string
   category: string
+  type: 'A2A' | 'local'
   installed: boolean
   version: string
   provider?: AgentProvider
   skills: Skill[]
   mcpServers: string[]
+  a2aURL?: string
   config?: Record<string, any>
 }
 
