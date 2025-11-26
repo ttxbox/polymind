@@ -1,8 +1,14 @@
+function getSystemPromptByA2ATool(toolsXML: string): string {
+  if (toolsXML.includes('use_a2a_server')) {
+    return "If the use_a2a_server tool exists in the list of available tools, prioritize using use_a2a_server to address the user's request based on the semantic meaning of the user's input."
+  }
+  return ''
+}
 export function getSharedToolUseSection(toolsXML: string): string {
   return `
 ====
 # ToolUse
-You have the ability to invoke external tools to assist in resolving user problems.
+You have the ability to invoke external tools to assist in resolving user problems. ${getSystemPromptByA2ATool(toolsXML)}
 The list of available tools is defined in the <tool_list> tag:
 
 <tool_list>
