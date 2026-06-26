@@ -431,6 +431,17 @@ export interface CreateAgentHubRequest {
   model_id?: string
 }
 
+/**
+ * 从下载URL导入Agent请求接口
+ */
+export interface ImportAgentFromUrlRequest {
+  download_url: string
+  sandbox_type: SandboxType | string
+  adapter_type: AdapterType | string
+  idle_timeout_seconds?: number
+  model_id?: string
+}
+
 // ============================================
 // 会话相关类型
 // ============================================
@@ -698,4 +709,90 @@ export interface InstallAgentSkillResponse {
   skill_id: string
   skill_name: string
   message: string
+}
+
+// ============================================
+// WittyHub 相关类型
+// ============================================
+
+/**
+ * WittyHub Agent 响应
+ */
+export interface WittyHubAgent {
+  id: string
+  agent_id: string
+  name: string
+  description: string
+  version: string
+  commit_id: string
+  author: string
+  source: string
+  source_url: string
+  category: string
+  tags: string[]
+  supported_platforms: string[]
+  logo_url: string
+  homepage_url: string
+  license: string
+  readme_content: string
+  agent_yaml_content: string
+  parsed_config: WittyHubParsedConfig
+  verified: boolean
+  star_count: number
+  contributor_count: number
+  security_score: number
+  download_count: number
+  rating: string
+  latest_commit_id: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * WittyHub 解析后的配置
+ */
+export interface WittyHubParsedConfig {
+  prompt: {
+    system: string
+    identity: {
+      role: string
+      emoji: string
+      vibe: string
+    }
+    workflow_file?: string
+  }
+  tools: {
+    allowed: string[]
+    permission: Record<string, any>
+  }
+  skills: Array<{
+    name: string
+    source: string
+    inline?: string
+    installed?: string
+    when?: string[]
+  }>
+  subagents: Array<{
+    name: string
+    prompt: Record<string, any>
+    tools: Record<string, any>
+    skills: any[]
+  }>
+}
+
+/**
+ * WittyHub Agent 列表响应
+ */
+export interface WittyHubAgentListResponse {
+  agents: WittyHubAgent[]
+  total: number
+  skip: number
+  limit: number
+}
+
+/**
+ * WittyHub 下载链接响应
+ */
+export interface WittyHubDownloadResponse {
+  download_url: string
 }

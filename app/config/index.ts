@@ -39,6 +39,7 @@ export const PUBLIC_ENV_KEYS = [
   'NEXT_PUBLIC_DEBUG',
   'NEXT_PUBLIC_AUTH_TOKEN',
   'NEXT_PUBLIC_USE_MOCK_DATA',
+  'NEXT_PUBLIC_WITTYHUB_API_URL',
 ] as const
 
 /**
@@ -69,6 +70,10 @@ export interface AppConfig {
     version: string
     debug: boolean
     useMockData: boolean
+  }
+  // WittyHub配置
+  wittyhub: {
+    apiUrl: string
   }
 }
 
@@ -121,6 +126,11 @@ export const appConfig: AppConfig = {
     },
     get useMockData() {
       return getConfigValue('NEXT_PUBLIC_USE_MOCK_DATA') === 'true'
+    },
+  },
+  wittyhub: {
+    get apiUrl() {
+      return getConfigValue('NEXT_PUBLIC_WITTYHUB_API_URL') || ''
     },
   },
 }

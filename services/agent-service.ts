@@ -8,6 +8,7 @@ import {
 } from '@/lib/types'
 import { AgentStatus, AdapterType } from '@/lib/types'
 import { generateUUID } from '@/lib/utils'
+import { wittyHubService } from './wittyhub-service'
 
 class AgentService {
   public async createAgent(request: CreateAgentRequest): Promise<Agent> {
@@ -85,15 +86,24 @@ class AgentService {
   }
 
   public async importAgentFromHub(request: CreateAgentHubRequest): Promise<Agent> {
-    const backendRequest: Record<string, any> = {
-      git_url: request.git_url,
-      sandbox_type: request.sandbox_type,
-      adapter_type: request.adapter_type,
+    let gitUrl = request.git_url
+
+    if (request.git_url.startsWith('wittyhub://')) {
+      const agentId = request.git_url.replace('wittyhub://', '')
+      console.log('从WittyHub导入智能体，agent_id:', agentId)
+      const downloadUrl = await wittyHubService.getDownloadUrl(agentId)
+      gitUrl = downloadUrl.endsWith('.git') ? downloadUrl : `${downloadUrl}.git`
+      console.log('获取到download_url:', downloadUrl)
+      console.log('拼接后的git_url:', gitUrl)
     }
 
-    if (request.branch) {
-      backendRequest.branch = request.branch
+    const backendRequest: Record<string, any> = {
+      git_url: gitUrl,
+      sandbox_type: request.sandbox_type,
+      adapter_type: request.adapter_type,
+      branch: request.branch || 'master',
     }
+
     if (request.idle_timeout_seconds) {
       backendRequest.idle_timeout_seconds = request.idle_timeout_seconds
     }

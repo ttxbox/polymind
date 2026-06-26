@@ -17,6 +17,7 @@ import { useThemeWithStore } from '@/components/theme-provider'
 import { SkillsPage } from './skill'
 import { ModelPage } from './model/model-page'
 import { McpPage } from './mcp/mcp-page'
+import { WittyHubPage } from './agent/wittyhub-page'
 
 export function SettingsPage() {
   const { settings, updateSettings, settingsActiveSection, setSettingsActiveSection } =
@@ -129,12 +130,15 @@ export function SettingsPage() {
 
           {activeSection === 'model' && <ModelPage />}
 
+          {activeSection === 'agent' && <WittyHubPage />}
+
           {activeSection === 'rules' && <SkillsPage />}
 
           {activeSection === 'mcp' && <McpPage />}
 
           {activeSection !== 'general' &&
             activeSection !== 'model' &&
+            activeSection !== 'agent' &&
             activeSection !== 'rules' &&
             activeSection !== 'mcp' && (
               <div className="flex items-center justify-center h-full">
